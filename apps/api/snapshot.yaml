@@ -1,0 +1,1594 @@
+version: 1
+directus: 11.3.5
+vendor: mysql
+collections:
+  - collection: comments
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: comments
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: comments
+  - collection: projects
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: status
+      archive_value: archived
+      collapse: open
+      collection: projects
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: draft
+      versioning: false
+    schema:
+      name: projects
+  - collection: projects_directus_users
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: projects_directus_users
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: import_export
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: projects_directus_users
+  - collection: tickets
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: status
+      archive_value: archived
+      collapse: open
+      collection: tickets
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: null
+      sort_field: null
+      translations: null
+      unarchive_value: draft
+      versioning: false
+    schema:
+      name: tickets
+fields:
+  - collection: comments
+    field: id
+    type: integer
+    meta:
+      collection: comments
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: comments
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: comments
+    field: user_created
+    type: string
+    meta:
+      collection: comments
+      conditions: null
+      display: user
+      display_options: null
+      field: user_created
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 2
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_created
+      table: comments
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: comments
+    field: date_created
+    type: timestamp
+    meta:
+      collection: comments
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 3
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: comments
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: comments
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: comments
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 4
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: comments
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: comments
+    field: content
+    type: text
+    meta:
+      collection: comments
+      conditions: null
+      display: null
+      display_options: null
+      field: content
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 5
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: content
+      table: comments
+      data_type: text
+      default_value: null
+      max_length: 65535
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: comments
+    field: ticket
+    type: integer
+    meta:
+      collection: comments
+      conditions: null
+      display: null
+      display_options: null
+      field: ticket
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableLink: true
+      readonly: false
+      required: true
+      sort: 6
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: ticket
+      table: comments
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: tickets
+      foreign_key_column: id
+  - collection: directus_users
+    field: projects
+    type: alias
+    meta:
+      collection: directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: projects
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 1
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: projects
+    field: id
+    type: integer
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: projects
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: status
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: labels
+      display_options:
+        choices:
+          - background: var(--theme--primary-background)
+            color: var(--theme--primary)
+            foreground: var(--theme--primary)
+            text: $t:published
+            value: published
+          - background: var(--theme--background-normal)
+            color: var(--theme--foreground)
+            foreground: var(--theme--foreground)
+            text: $t:draft
+            value: draft
+          - background: var(--theme--warning-background)
+            color: var(--theme--warning)
+            foreground: var(--theme--warning)
+            text: $t:archived
+            value: archived
+        showAsDot: true
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - color: var(--theme--primary)
+            text: $t:published
+            value: published
+          - color: var(--theme--foreground)
+            text: $t:draft
+            value: draft
+          - color: var(--theme--warning)
+            text: $t:archived
+            value: archived
+      readonly: false
+      required: false
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: status
+      table: projects
+      data_type: varchar
+      default_value: draft
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: user_created
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: user
+      display_options: null
+      field: user_created
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 3
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_created
+      table: projects
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: projects
+    field: date_created
+    type: timestamp
+    meta:
+      collection: projects
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 4
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: projects
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: projects
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 5
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: projects
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: name
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name
+      table: projects
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: description
+    type: text
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: description
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description
+      table: projects
+      data_type: text
+      default_value: null
+      max_length: 65535
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects
+    field: owner
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: owner
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableLink: true
+      readonly: false
+      required: true
+      sort: 8
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: owner
+      table: projects
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: projects
+    field: tickets
+    type: alias
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: tickets
+      group: null
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+        sort: null
+      readonly: false
+      required: false
+      sort: 9
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: projects
+    field: members
+    type: alias
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: members
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+      readonly: false
+      required: false
+      sort: 10
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: projects_directus_users
+    field: id
+    type: integer
+    meta:
+      collection: projects_directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: projects_directus_users
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: projects_directus_users
+    field: project
+    type: integer
+    meta:
+      collection: projects_directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: project
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: project
+      table: projects_directus_users
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: projects
+      foreign_key_column: id
+  - collection: projects_directus_users
+    field: directus_user
+    type: string
+    meta:
+      collection: projects_directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: directus_user
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: directus_user
+      table: projects_directus_users
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets
+    field: id
+    type: integer
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: tickets
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: status
+    type: string
+    meta:
+      collection: tickets
+      conditions: null
+      display: labels
+      display_options:
+        choices:
+          - background: var(--theme--primary-background)
+            color: var(--theme--primary)
+            foreground: var(--theme--primary)
+            text: $t:published
+            value: published
+          - background: var(--theme--background-normal)
+            color: var(--theme--foreground)
+            foreground: var(--theme--foreground)
+            text: $t:draft
+            value: draft
+          - background: var(--theme--warning-background)
+            color: var(--theme--warning)
+            foreground: var(--theme--warning)
+            text: $t:archived
+            value: archived
+        showAsDot: true
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - color: var(--theme--primary)
+            text: $t:published
+            value: published
+          - color: var(--theme--foreground)
+            text: $t:draft
+            value: draft
+          - color: var(--theme--warning)
+            text: $t:archived
+            value: archived
+      readonly: false
+      required: false
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: status
+      table: tickets
+      data_type: varchar
+      default_value: draft
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: user_created
+    type: string
+    meta:
+      collection: tickets
+      conditions: null
+      display: user
+      display_options: null
+      field: user_created
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 3
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_created
+      table: tickets
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets
+    field: date_created
+    type: timestamp
+    meta:
+      collection: tickets
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 4
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: tickets
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: user_updated
+    type: string
+    meta:
+      collection: tickets
+      conditions: null
+      display: user
+      display_options: null
+      field: user_updated
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 5
+      special:
+        - user-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_updated
+      table: tickets
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: tickets
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 6
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: tickets
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: title
+    type: string
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: title
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title
+      table: tickets
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: description
+    type: text
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: description
+      group: null
+      hidden: false
+      interface: input-multiline
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description
+      table: tickets
+      data_type: text
+      default_value: null
+      max_length: 65535
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: priority
+    type: string
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: priority
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: high
+            value: high
+          - text: low
+            value: low
+      readonly: false
+      required: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: priority
+      table: tickets
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets
+    field: assignee
+    type: string
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: assignee
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableLink: true
+      readonly: false
+      required: false
+      sort: 10
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: assignee
+      table: tickets
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets
+    field: project
+    type: integer
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: project
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableLink: true
+      readonly: false
+      required: true
+      sort: 11
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: project
+      table: tickets
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: projects
+      foreign_key_column: id
+  - collection: tickets
+    field: comments
+    type: alias
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: comments
+      group: null
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+        sort: null
+      readonly: false
+      required: false
+      sort: 12
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+relations:
+  - collection: comments
+    field: user_created
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: comments
+      many_field: user_created
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: comments
+      column: user_created
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: comments_user_created_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: comments
+    field: ticket
+    related_collection: tickets
+    meta:
+      junction_field: null
+      many_collection: comments
+      many_field: ticket
+      one_allowed_collections: null
+      one_collection: tickets
+      one_collection_field: null
+      one_deselect_action: delete
+      one_field: comments
+      sort_field: null
+    schema:
+      table: comments
+      column: ticket
+      foreign_key_table: tickets
+      foreign_key_column: id
+      constraint_name: comments_ticket_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: projects
+    field: user_created
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: projects
+      many_field: user_created
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: projects
+      column: user_created
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: projects_user_created_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: projects
+    field: owner
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: projects
+      many_field: owner
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: projects
+      column: owner
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: projects_owner_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: projects_directus_users
+    field: directus_user
+    related_collection: directus_users
+    meta:
+      junction_field: project
+      many_collection: projects_directus_users
+      many_field: directus_user
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: projects
+      sort_field: null
+    schema:
+      table: projects_directus_users
+      column: directus_user
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: projects_directus_users_directus_user_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: projects_directus_users
+    field: project
+    related_collection: projects
+    meta:
+      junction_field: directus_user
+      many_collection: projects_directus_users
+      many_field: project
+      one_allowed_collections: null
+      one_collection: projects
+      one_collection_field: null
+      one_deselect_action: delete
+      one_field: members
+      sort_field: null
+    schema:
+      table: projects_directus_users
+      column: project
+      foreign_key_table: projects
+      foreign_key_column: id
+      constraint_name: projects_directus_users_project_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets
+    field: user_created
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets
+      many_field: user_created
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets
+      column: user_created
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_user_created_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets
+    field: user_updated
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets
+      many_field: user_updated
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets
+      column: user_updated
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_user_updated_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets
+    field: assignee
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets
+      many_field: assignee
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets
+      column: assignee
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_assignee_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: tickets
+    field: project
+    related_collection: projects
+    meta:
+      junction_field: null
+      many_collection: tickets
+      many_field: project
+      one_allowed_collections: null
+      one_collection: projects
+      one_collection_field: null
+      one_deselect_action: delete
+      one_field: tickets
+      sort_field: null
+    schema:
+      table: tickets
+      column: project
+      foreign_key_table: projects
+      foreign_key_column: id
+      constraint_name: tickets_project_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION

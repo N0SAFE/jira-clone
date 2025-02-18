@@ -1,0 +1,78 @@
+{
+  "lastAdminRoleId": "04b2ce74-cf0b-4a99-a991-3ddceff3e9d8",
+  "data": [
+    {
+      "id": "adding directus_roles",
+      "items": [
+        {
+          "description": "$t:admin_description",
+          "icon": "verified",
+          "id": "04b2ce74-cf0b-4a99-a991-3ddceff3e9d8",
+          "name": "Administrator",
+          "parent": null,
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "adding creatingdirectus_policies",
+      "items": [
+        {
+          "admin_access": true,
+          "app_access": true,
+          "description": "$t:admin_description",
+          "enforce_tfa": false,
+          "icon": "verified",
+          "id": "9ff2a6be-10b1-42c6-a295-3ee3c469328a",
+          "ip_access": null,
+          "name": "Administrator"
+        },
+        {
+          "admin_access": false,
+          "app_access": false,
+          "description": "$t:public_description",
+          "enforce_tfa": false,
+          "icon": "public",
+          "id": "abf8a154-5b1c-4a46-ac9c-7300570f4f17",
+          "ip_access": null,
+          "name": "$t:public_label"
+        }
+      ]
+    },
+    {
+      "id": "adding directus_permissions",
+      "items": []
+    },
+    {
+      "id": "adding directus_access",
+      "items": [
+        {
+          "id": "043b9cea-2319-455b-84a7-6b3eaabe79b3",
+          "policy": "9ff2a6be-10b1-42c6-a295-3ee3c469328a",
+          "role": "04b2ce74-cf0b-4a99-a991-3ddceff3e9d8",
+          "sort": null,
+          "user": null
+        },
+        {
+          "id": "df36077c-06b9-4aa0-822a-f085890b6b9a",
+          "policy": "abf8a154-5b1c-4a46-ac9c-7300570f4f17",
+          "role": null,
+          "sort": 1,
+          "user": null
+        }
+      ]
+    },
+    {
+      "id": "adding directus_flows",
+      "items": []
+    },
+    {
+      "id": "adding directus_operations",
+      "items": []
+    },
+    {
+      "id": "updating directus_flows",
+      "items": []
+    }
+  ]
+}
