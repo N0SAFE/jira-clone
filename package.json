@@ -1,5 +1,5 @@
 {
-    "name": "shadcn-registry",
+    "name": "jira-clone",
     "private": true,
     "workspaces": [
         "apps/*",
