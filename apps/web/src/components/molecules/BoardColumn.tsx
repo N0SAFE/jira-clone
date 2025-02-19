@@ -1,15 +1,17 @@
 import { Card } from "@repo/ui/components/shadcn/card"
-import { IssueCard } from "../atoms/IssueCard"
+import { TicketCard } from "../atoms/TicketCard"
 import { useDroppable } from "@dnd-kit/core"
 import { Issue } from "@/types/issue"
+import { Collections } from "@repo/directus-sdk/client"
+import { ApplyFields } from "@repo/directus-sdk/indirectus/utils"
 
 interface BoardColumnProps {
   title: string
-  issues: Issue[]
+  tickets: ApplyFields<Collections.Tickets, ['title', 'id', 'priority']>[]
   id: string
 }
 
-export function BoardColumn({ title, issues, id }: BoardColumnProps) {
+export function BoardColumn({ title, tickets, id }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
   })
@@ -19,7 +21,7 @@ export function BoardColumn({ title, issues, id }: BoardColumnProps) {
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-medium">{title}</h3>
         <span className="rounded-full bg-secondary px-2 py-1 text-xs">
-          {issues.length}
+          {tickets.length}
         </span>
       </div>
       <div 
@@ -28,8 +30,8 @@ export function BoardColumn({ title, issues, id }: BoardColumnProps) {
           isOver ? "bg-secondary/50" : "bg-secondary/10"
         }`}
       >
-        {issues.map((issue) => (
-          <IssueCard key={issue.id} issue={issue} />
+        {tickets.map((ticket) => (
+          <TicketCard key={ticket.id} ticket={ticket} />
         ))}
       </div>
     </div>

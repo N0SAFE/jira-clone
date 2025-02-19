@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 export const Route = {
-  name: "Settings",
+  name: "ProjectsProjectIdSettings",
   params: z.object({
+    projectId: z.number(),
   })
 };
 

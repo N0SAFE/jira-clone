@@ -22,6 +22,7 @@ import {
     NavigationMenuList,
     navigationMenuTriggerStyle,
 } from '@repo/ui/components/shadcn/navigation-menu'
+import { Separator } from '@repo/ui/components/shadcn/separator'
 
 export function TopNav() {
     return (
@@ -31,6 +32,7 @@ export function TopNav() {
                     <Link href="/" className="text-lg font-semibold">
                         Jira Clone
                     </Link>
+                    <Separator orientation='vertical'/>
                     <NavigationMenu>
                         <NavigationMenuList>
                             <NavigationMenuItem>
@@ -45,6 +47,8 @@ export function TopNav() {
                         </NavigationMenuList>
                     </NavigationMenu>
                 </div>
+
+               
 
                 <div className="flex items-center space-x-4">
                     <DropdownMenu>

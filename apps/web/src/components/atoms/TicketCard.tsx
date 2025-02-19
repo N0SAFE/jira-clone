@@ -2,15 +2,17 @@ import { Card } from "@repo/ui/components/shadcn/card"
 import { Badge } from "@repo/ui/components/shadcn/badge"
 import { useDraggable } from "@dnd-kit/core"
 import { Issue } from "@/types/issue"
+import { ApplyFields } from "@repo/directus-sdk/indirectus/utils"
+import { Collections } from "@repo/directus-sdk/client"
 
-interface IssueCardProps {
-  issue: Issue
+interface TicketCardProps {
+  ticket: ApplyFields<Collections.Tickets, ['title', 'id', 'priority']>
 }
 
-export function IssueCard({ issue }: IssueCardProps) {
+export function TicketCard({ ticket }: TicketCardProps) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: issue.id,
-    data: issue,
+    id: ticket.id,
+    data: ticket,
   })
 
   const style = transform ? {
@@ -32,9 +34,9 @@ export function IssueCard({ issue }: IssueCardProps) {
       {...attributes}
     >
       <div className="space-y-2">
-        <h4 className="text-sm font-medium">{issue.title}</h4>
-        <Badge className={priorityColors[issue.priority]}>
-          {issue.priority}
+        <h4 className="text-sm font-medium">{ticket.title}</h4>
+        <Badge className={priorityColors[ticket.priority]}>
+          {ticket.priority}
         </Badge>
       </div>
     </Card>
