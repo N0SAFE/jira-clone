@@ -1,0 +1,82 @@
+import { Button } from '@repo/ui/components/shadcn/button'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@repo/ui/components/shadcn/dropdown-menu'
+import { Promisable } from '@repo/types/utils'
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { Row } from '@tanstack/react-table'
+import React from 'react'
+
+type DefaultColumnOptions<T> = {
+    onRowDelete?: (rows: T[]) => Promisable<void>
+    onRowEdit?: (rows: T[]) => Promisable<void>
+    onRowView?: (rows: T[]) => Promisable<void>
+}
+
+type ActionsCellRowProps<T, O extends DefaultColumnOptions<T>> = {
+    row: Row<T>
+    options?: O
+}
+
+export function ActionsCellRow<T, O extends DefaultColumnOptions<T>>({
+    row,
+    options,
+}: ActionsCellRowProps<T, O>) {
+    const [actionsDropdownIsOpen, setActionsDropdownIsOpen] =
+        React.useState(false)
+
+    return (
+        <div className="flex justify-end">
+            <DropdownMenu
+                open={actionsDropdownIsOpen}
+                onOpenChange={setActionsDropdownIsOpen}
+            >
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <DotsHorizontalIcon className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={async (e) => {
+                            e.preventDefault()
+                            await options?.onRowView?.([row.original])
+                            setActionsDropdownIsOpen(false)
+                        }}
+                    >
+                        View
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={async (e) => {
+                            e.preventDefault()
+                            await options?.onRowEdit?.([row.original])
+                            setActionsDropdownIsOpen(false)
+                        }}
+                    >
+                        Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className="cursor-pointer bg-red-600 text-white hover:bg-red-500"
+                        onClick={async (e) => {
+                            e.preventDefault()
+                            await options?.onRowDelete?.([row.original])
+                            setActionsDropdownIsOpen(false)
+                        }}
+                    >
+                        Delete
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    )
+}
