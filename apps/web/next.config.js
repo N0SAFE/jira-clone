@@ -24,6 +24,10 @@ const nextConfig = {
     experimental: {
         // ppr: 'incremental',
         reactCompiler: true,
+        serverActions: {
+            allowedOrigins: ['https://api.github.dev', '*.app.github.dev'],
+            allowedForwardedHosts: ['*.app.github.dev'],
+        },
     },
     images: {
         dangerouslyAllowSVG: true,

@@ -39,7 +39,7 @@ export default async function RootLayout({
             <body
                 className={cn(
                     fontSans.variable,
-                    'bg-background h-screen w-screen overflow-auto font-sans antialiased'
+                    'bg-background h-screen w-screen font-sans antialiased overflow-hidden'
                 )}
             >
                 {process.env.NODE_ENV === 'development' &&

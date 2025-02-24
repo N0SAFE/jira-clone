@@ -13,8 +13,9 @@ export default async function Layout({
 
     return (
         <div className="flex">
-            <Sidebar projectId={Number(projectId)} />
-            {children}
+            <Sidebar projectId={Number(projectId)}>
+                <div className="flex-1">{children}</div>
+            </Sidebar>
         </div>
     )
 }

@@ -16,12 +16,27 @@ import {
     ProjectsProjectIdSettings,
     ProjectsProjectIdTeam,
 } from '@/routes'
+import { Separator } from '@repo/ui/components/shadcn/separator'
+import {
+    SidebarInset,
+    SidebarProvider,
+    SidebarTrigger,
+} from '@repo/ui/components/shadcn/sidebar'
+import {
+    Breadcrumb,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbList,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+} from '@repo/ui/components/shadcn/breadcrumb'
+import { AppSidebar } from '../organisms/Sidebar/AppSidebar'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     projectId: number
 }
 
-export function Sidebar({ className, projectId }: SidebarProps) {
+export function Sidebar({ className, projectId, children }: SidebarProps) {
     const pathname = usePathname()
 
     const routes = [
@@ -57,6 +72,39 @@ export function Sidebar({ className, projectId }: SidebarProps) {
             }),
         },
     ]
+
+    return (
+        <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+                <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                    <div className="flex items-center gap-2 px-4">
+                        <SidebarTrigger className="-ml-1" />
+                        <Separator
+                            orientation="vertical"
+                            className="mr-2 h-4"
+                        />
+                        <Breadcrumb>
+                            <BreadcrumbList>
+                                <BreadcrumbItem className="hidden md:block">
+                                    <BreadcrumbLink href="#">
+                                        Building Your Application
+                                    </BreadcrumbLink>
+                                </BreadcrumbItem>
+                                <BreadcrumbSeparator className="hidden md:block" />
+                                <BreadcrumbItem>
+                                    <BreadcrumbPage>
+                                        Data Fetching
+                                    </BreadcrumbPage>
+                                </BreadcrumbItem>
+                            </BreadcrumbList>
+                        </Breadcrumb>
+                    </div>
+                </header>
+                {children}
+            </SidebarInset>
+        </SidebarProvider>
+    )
 
     return (
         <div className={cn('min-h-screen w-64 border-r pb-12', className)}>
@@ -96,7 +144,10 @@ export function Sidebar({ className, projectId }: SidebarProps) {
     )
 }
 
-export function MobileSidebar({ projectId }: { projectId: number }) {
+export function MobileSidebar({
+    projectId,
+    children,
+}: React.PropsWithChildren<{ projectId: number }>) {
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -105,7 +156,7 @@ export function MobileSidebar({ projectId }: { projectId: number }) {
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
-                <Sidebar projectId={projectId} />
+                <Sidebar projectId={projectId}>{children}</Sidebar>
             </SheetContent>
         </Sheet>
     )
