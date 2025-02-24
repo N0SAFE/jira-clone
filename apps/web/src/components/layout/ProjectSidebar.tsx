@@ -36,7 +36,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     projectId: number
 }
 
-export function Sidebar({ className, projectId, children }: SidebarProps) {
+export function ProjectSidebar({ className, projectId, children }: SidebarProps) {
     const pathname = usePathname()
 
     const routes = [

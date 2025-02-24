@@ -8,7 +8,7 @@ import { type JSX } from 'react'
 import Script from 'next/script'
 import { validateEnv } from '#/env'
 import { Providers } from './providers'
-import { Sidebar } from '../components/layout/Sidebar'
+import { Sidebar } from '../components/layout/ProjectSidebar'
 import { TopNav } from '@/components/layout/TopNav'
 
 const fontSans = Inter({ subsets: ['latin'], variable: '--font-sans' })
@@ -55,7 +55,7 @@ export default async function RootLayout({
                 <Providers>
                     <div className="bg-background min-h-screen">
                         <TopNav />
-                        <main className="p-6">{children}</main>
+                        <main>{children}</main>
                     </div>
                 </Providers>
             </body>

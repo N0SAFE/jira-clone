@@ -1,4 +1,4 @@
-import { Sidebar } from '@/components/layout/Sidebar'
+import { ProjectSidebar } from '@/components/layout/ProjectSidebar'
 import { z } from 'zod'
 import { Route } from './page.info'
 
@@ -13,9 +13,9 @@ export default async function Layout({
 
     return (
         <div className="flex">
-            <Sidebar projectId={Number(projectId)}>
+            <ProjectSidebar projectId={Number(projectId)}>
                 <div className="flex-1">{children}</div>
-            </Sidebar>
+            </ProjectSidebar>
         </div>
     )
 }
