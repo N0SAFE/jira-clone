@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-
 import { Button } from '@repo/ui/components/shadcn/button'
 import { Input } from '@repo/ui/components/shadcn/input'
 import {
@@ -17,13 +16,14 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import React from 'react'
-import redirect from '@/actions/redirect'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AlertCircle, Spinner } from '@repo/ui/components/atomics/atoms/Icon'
 import { signIn } from '@/lib/auth/actions'
 import { loginSchema } from './schema'
+import nProgress from 'nprogress'
 
 const LoginPage: React.FC = () => {
+    const router = useRouter()
     const searchParams = useSearchParams()
     const [isLoading, setIsLoading] = React.useState<boolean>(false)
     const [error, setError] = React.useState<string>('')
@@ -36,12 +36,23 @@ const LoginPage: React.FC = () => {
         values: z.infer<typeof loginSchema>
     ): Promise<void> => {
         setIsLoading(true)
-        const res = await signIn('credentials', { ...values, redirect: false })
-        if (res?.error) {
-            setError(res?.error)
+        try {
+            const res = await signIn('credentials', { 
+                ...values, 
+                redirect: false 
+            })
+            if (res?.error) {
+                setError(res.error)
+            } else {
+                const callbackUrl = searchParams.get('callbackUrl') ?? '/'
+                nProgress.start()
+                router.push(callbackUrl)
+                router.refresh()
+            }
+        } catch (err) {
+            setError('An error occurred during sign in')
+        } finally {
             setIsLoading(false)
-        } else {
-            redirect(searchParams.get('callbackUrl') ?? '/')
         }
     }
 
@@ -128,6 +139,7 @@ const LoginPage: React.FC = () => {
                                             </div>
                                             <FormControl>
                                                 <Input
+                                                    type="password"
                                                     id="password"
                                                     {...field}
                                                 />
@@ -136,44 +148,29 @@ const LoginPage: React.FC = () => {
                                         </FormItem>
                                     )}
                                 />
-
-                                {/* <div className="grid gap-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" placeholder="m@example.com" required />
-                                </div> */}
-                                {/* <div className="grid gap-2">
-                                    <div className="flex items-center">
-                                        <Label htmlFor="password">Password</Label>
-                                        <Link href="/forgot-password" className="ml-auto inline-block text-sm underline">
-                                            Forgot your password?
-                                        </Link>
-                                    </div>
-                                    <Input id="password" type="password" required />
-                                </div> */}
-                                {error && (
-                                    <Alert variant="destructive">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <AlertDescription>
-                                            {error}
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
-
-                                <Button
-                                    disabled={isLoading}
-                                    type="submit"
-                                    className="w-full"
-                                >
-                                    {isLoading && <Spinner />} Login
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="w-full"
-                                >
-                                    Login with Google
-                                </Button>
                             </div>
+                            {error && (
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertDescription>
+                                        {error}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                            <Button
+                                disabled={isLoading}
+                                type="submit"
+                                className="w-full"
+                            >
+                                {isLoading && <Spinner />} Login
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full"
+                            >
+                                Login with Google
+                            </Button>
                             <div className="mt-4 text-center text-sm">
                                 Don&apos;t have an account?{' '}
                                 <Link href="#" className="underline">

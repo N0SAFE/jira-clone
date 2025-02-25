@@ -8,7 +8,6 @@ import { type JSX } from 'react'
 import Script from 'next/script'
 import { validateEnv } from '#/env'
 import { Providers } from './providers'
-import { Sidebar } from '../components/layout/ProjectSidebar'
 import { TopNav } from '@/components/layout/TopNav'
 
 const fontSans = Inter({ subsets: ['latin'], variable: '--font-sans' })
@@ -26,9 +25,9 @@ export default async function RootLayout({
     const env = validateEnv(process.env)
 
     return (
-        <html lang="en">
+        <html lang="en" className="h-full">
             <head>
-                {process.env.NODE_ENV === 'development' && env.REACT_SCAN && (
+                {env.REACT_SCAN && (
                     <Script
                         src="https://unpkg.com/react-scan/dist/auto.global.js"
                         strategy="beforeInteractive"
@@ -39,11 +38,10 @@ export default async function RootLayout({
             <body
                 className={cn(
                     fontSans.variable,
-                    'bg-background h-screen w-screen font-sans antialiased overflow-hidden'
+                    'bg-background font-sans antialiased h-full'
                 )}
             >
-                {process.env.NODE_ENV === 'development' &&
-                    env.REACT_SCAN &&
+                {env.REACT_SCAN &&
                     env.REACT_SCAN_TOKEN && (
                         <Monitoring
                             apiKey={env.REACT_SCAN_TOKEN} // Safe to expose publically
@@ -53,9 +51,9 @@ export default async function RootLayout({
                         />
                     )}
                 <Providers>
-                    <div className="bg-background min-h-screen">
+                    <div className="bg-background flex flex-col h-screen">
                         <TopNav />
-                        <main>{children}</main>
+                        <main className="flex-1 overflow-y-auto">{children}</main>
                     </div>
                 </Providers>
             </body>

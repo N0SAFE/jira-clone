@@ -12,8 +12,8 @@ import {
 
 export default function SettingsPage() {
   return (
-    <div className="container mx-auto py-10">
-      <div className="space-y-6">
+    <div className="container mx-auto py-10 h-full overflow-y-auto">
+      <div className="space-y-6 pb-6">
         <h1 className="text-3xl font-bold">Account Settings</h1>
 
         <Card>
@@ -87,3 +87,4 @@ export default function SettingsPage() {
       </div>
     </div>
   )
+}

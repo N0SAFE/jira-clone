@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { useParams } from 'next/navigation'
 import { BoardHeader } from '@/components/organisms/BoardHeader'
 import {
     Card,
@@ -11,33 +10,21 @@ import {
 } from '@repo/ui/components/shadcn/card'
 import { Badge } from '@repo/ui/components/shadcn/badge'
 import directus from '@/lib/directus'
-import { useProjectQuery } from '@/query&mutation/project'
+import { useProject } from '@/context/ProjectContext'
 
 export default function DashboardPage() {
-    const { projectId } = useParams<{ projectId: string }>()
-
-    const { data: project } = useProjectQuery({
-        queryKey: ['projects', projectId],
-        params: [
-            Number(projectId),
-            {
-                fields: [
-                    '*',
-                    { owner: ['id', 'first_name', 'last_name', 'avatar'] },
-                ],
-            },
-        ],
-    })
+    const { project } = useProject();
 
     const { data: tickets } = useQuery({
-        queryKey: ['projects', projectId, 'tickets'],
+        queryKey: ['projects', project?.id, 'tickets'],
         queryFn: async () => {
             return directus.Tickets.query({
                 filter: {
-                    project: projectId,
+                    project: project?.id,
                 },
             })
         },
+        enabled: !!project?.id,
     })
 
     const ticketsByStatus = {

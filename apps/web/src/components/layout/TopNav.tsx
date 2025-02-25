@@ -25,10 +25,11 @@ import {
     navigationMenuTriggerStyle,
 } from '@repo/ui/components/shadcn/navigation-menu'
 import { Separator } from '@repo/ui/components/shadcn/separator'
-import { Authlogin } from '@/routes'
+import { Authlogin, Profile, Settings as SettingsRouter } from '@/routes'
 import { signOut } from '@/lib/auth/actions'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import nProgress from 'nprogress'
 
 export function TopNav() {
     const { data: session } = useSession()
@@ -41,7 +42,7 @@ export function TopNav() {
                     <Link href="/" className="text-lg font-semibold">
                         Jira Clone
                     </Link>
-                    <Separator orientation='vertical'/>
+                    <Separator orientation="vertical" />
                     <NavigationMenu>
                         <NavigationMenuList>
                             <NavigationMenuItem>
@@ -76,8 +77,13 @@ export function TopNav() {
                                         </Badge>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-80">
-                                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-80"
+                                >
+                                    <DropdownMenuLabel>
+                                        Notifications
+                                    </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem>
                                         <div className="flex flex-col space-y-1">
@@ -101,29 +107,48 @@ export function TopNav() {
                                         <Avatar className="h-8 w-8">
                                             <AvatarImage
                                                 src="/avatars/01.png"
-                                                alt={session.user?.name || '@user'}
+                                                alt={
+                                                    session.user?.name ||
+                                                    '@user'
+                                                }
                                             />
                                             <AvatarFallback>
-                                                {session.user?.name?.[0]?.toUpperCase() || 'U'}
+                                                {session.user?.name?.[0]?.toUpperCase() ||
+                                                    'U'}
                                             </AvatarFallback>
                                         </Avatar>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56" align="end">
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuContent
+                                    className="w-56"
+                                    align="end"
+                                >
+                                    <DropdownMenuLabel>
+                                        My Account
+                                    </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => router.push('/profile')}>
+                                    <DropdownMenuItem
+                                        onClick={() =>
+                                            Profile.immediate(router)
+                                        }
+                                    >
                                         <UserIcon className="mr-2 h-4 w-4" />
                                         Profile
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => router.push('/settings')}>
+                                    <DropdownMenuItem
+                                        onClick={() =>
+                                            SettingsRouter.immediate(router)
+                                        }
+                                    >
                                         <Settings className="mr-2 h-4 w-4" />
                                         Settings
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                         className="text-red-600"
-                                        onClick={() => signOut()}
+                                        onClick={() =>
+                                            nProgress.start() && signOut()
+                                        }
                                     >
                                         Log out
                                     </DropdownMenuItem>

@@ -1,13 +1,12 @@
-import { getServerSession } from 'next-auth'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui/components/shadcn/card'
 import { Input } from '@repo/ui/components/shadcn/input'
 import { Label } from '@repo/ui/components/shadcn/label'
 import { Button } from '@repo/ui/components/shadcn/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/shadcn/avatar'
+import { auth } from '@/lib/auth'
 
 export default async function ProfilePage() {
-  const session = await getServerSession()
+  const session = await auth()
 
   return (
     <div className="container mx-auto py-10">

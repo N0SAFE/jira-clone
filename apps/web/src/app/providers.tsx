@@ -32,7 +32,7 @@ export function Providers({
                         enableSystem
                         disableTransitionOnChange
                     >
-                        <NextTopLoader />
+                        <NextTopLoader showSpinner={false} />
                         <ReactQueryProviders>{children}</ReactQueryProviders>
                     </ThemeProvider>
                 </Validate>

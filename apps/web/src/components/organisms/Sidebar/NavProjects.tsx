@@ -1,10 +1,13 @@
 "use client"
 
+import Link from "next/link"
 import {
   Folder,
-  Forward,
+  KanbanSquare,
   MoreHorizontal,
-  Trash2,
+  Plus,
+  Settings,
+  Users,
   type LucideIcon,
 } from "lucide-react"
 
@@ -31,6 +34,7 @@ export function NavProjects({
   projects: {
     name: string
     url: string
+    id?: number | string
     icon: LucideIcon
   }[]
 }) {
@@ -38,15 +42,21 @@ export function NavProjects({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel className="flex justify-between">
+        <span>Projects</span>
+        <Link href="/projects" className="text-sidebar-foreground hover:text-sidebar-accent-foreground">
+          <Plus className="size-4" />
+          <span className="sr-only">Create Project</span>
+        </Link>
+      </SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <Link href={item.id ? `/projects/${item.id}` : "/projects"}>
                 <item.icon />
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -60,27 +70,41 @@ export function NavProjects({
                 side={isMobile ? "bottom" : "right"}
                 align={isMobile ? "end" : "start"}
               >
-                <DropdownMenuItem>
-                  <Folder className="text-muted-foreground" />
-                  <span>View Project</span>
+                <DropdownMenuItem asChild>
+                  <Link href={item.id ? `/projects/${item.id}` : "/projects"}>
+                    <Folder className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Overview</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Forward className="text-muted-foreground" />
-                  <span>Share Project</span>
+                <DropdownMenuItem asChild>
+                  <Link href={item.id ? `/projects/${item.id}/board` : "/projects"}>
+                    <KanbanSquare className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Board</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={item.id ? `/projects/${item.id}/team` : "/projects"}>
+                    <Users className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Team</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
+                <DropdownMenuItem asChild>
+                  <Link href={item.id ? `/projects/${item.id}/settings` : "/projects"}>
+                    <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
         <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontal className="text-sidebar-foreground/70" />
-            <span>More</span>
+          <SidebarMenuButton asChild>
+            <Link href="/projects" className="text-sidebar-foreground/70">
+              <MoreHorizontal className="text-sidebar-foreground/70" />
+              <span>All Projects</span>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

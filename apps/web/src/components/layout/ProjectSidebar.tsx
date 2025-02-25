@@ -1,21 +1,14 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@repo/ui/lib/utils'
-import { LayoutDashboard, ListTodo, Settings, Users, Plus } from 'lucide-react'
+import Link from 'next/link'
+import { LayoutDashboard } from 'lucide-react'
 import { Button } from '@repo/ui/components/shadcn/button'
 import {
     Sheet,
     SheetContent,
     SheetTrigger,
 } from '@repo/ui/components/shadcn/sheet'
-import {
-    ProjectsProjectId,
-    ProjectsProjectIdBoard,
-    ProjectsProjectIdSettings,
-    ProjectsProjectIdTeam,
-} from '@/routes'
 import { Separator } from '@repo/ui/components/shadcn/separator'
 import {
     SidebarInset,
@@ -36,110 +29,79 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     projectId: number
 }
 
-export function ProjectSidebar({ className, projectId, children }: SidebarProps) {
+export function ProjectSidebar({
+    children,
+    projectId,
+}: SidebarProps) {
     const pathname = usePathname()
-
-    const routes = [
-        {
-            label: 'Dashboard',
-            icon: LayoutDashboard,
-            href: ProjectsProjectId({
-                projectId,
-            }),
-            color: 'text-sky-500',
-        },
-        {
-            label: 'Board',
-            icon: ListTodo,
-            href: ProjectsProjectIdBoard({
-                projectId,
-            }),
-            color: 'text-violet-500',
-        },
-        {
-            label: 'Team',
-            icon: Users,
-            color: 'text-pink-700',
-            href: ProjectsProjectIdTeam({
-                projectId,
-            }),
-        },
-        {
-            label: 'Settings',
-            icon: Settings,
-            href: ProjectsProjectIdSettings({
-                projectId,
-            }),
-        },
-    ]
+    
+    // Extract breadcrumb info from pathname
+    const getBreadcrumbInfo = () => {
+        // Default values
+        let projectName = "Project";
+        let currentSection = "";
+        
+        // Check if we're in a project route
+        if (pathname.startsWith('/projects/')) {
+            // Split the path to get project ID and section
+            const pathParts = pathname.split('/').filter(Boolean);
+            
+            // If we have a project ID (at least /projects/[id])
+            if (pathParts.length >= 2) {
+                projectName = `Project ${pathParts[1]}`;
+                
+                // If we have a section (like /projects/[id]/board)
+                if (pathParts.length >= 3) {
+                    currentSection = pathParts[2].charAt(0).toUpperCase() + pathParts[2].slice(1);
+                } else {
+                    currentSection = "Overview";
+                }
+            }
+        }
+        
+        return { projectName, currentSection };
+    }
+    
+    const { projectName, currentSection } = getBreadcrumbInfo();
 
     return (
-        <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-                <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                    <div className="flex items-center gap-2 px-4">
-                        <SidebarTrigger className="-ml-1" />
-                        <Separator
-                            orientation="vertical"
-                            className="mr-2 h-4"
-                        />
-                        <Breadcrumb>
-                            <BreadcrumbList>
-                                <BreadcrumbItem className="hidden md:block">
-                                    <BreadcrumbLink href="#">
-                                        Building Your Application
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator className="hidden md:block" />
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage>
-                                        Data Fetching
-                                    </BreadcrumbPage>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>
+        <div className="flex h-full w-full">
+            <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset>
+                    <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                        <div className="flex items-center gap-2 px-4">
+                            <SidebarTrigger className="-ml-1" />
+                            <Separator
+                                orientation="vertical"
+                                className="mr-2 h-4"
+                            />
+                            <Breadcrumb>
+                                <BreadcrumbList>
+                                    <BreadcrumbItem className="hidden md:block">
+                                        <BreadcrumbLink href={`/projects/${projectId}`}>
+                                            {projectName}
+                                        </BreadcrumbLink>
+                                    </BreadcrumbItem>
+                                    {currentSection && (
+                                        <>
+                                            <BreadcrumbSeparator className="hidden md:block" />
+                                            <BreadcrumbItem>
+                                                <BreadcrumbPage>
+                                                    {currentSection}
+                                                </BreadcrumbPage>
+                                            </BreadcrumbItem>
+                                        </>
+                                    )}
+                                </BreadcrumbList>
+                            </Breadcrumb>
+                        </div>
+                    </header>
+                    <div className="flex flex-1 flex-col overflow-y-auto">
+                        {children}
                     </div>
-                </header>
-                {children}
-            </SidebarInset>
-        </SidebarProvider>
-    )
-
-    return (
-        <div className={cn('min-h-screen w-64 border-r pb-12', className)}>
-            <div className="space-y-4 py-4">
-                <div className="px-4 py-2">
-                    <Button className="w-full justify-start" size="sm">
-                        <Plus className="mr-2 h-4 w-4" />
-                        New Project
-                    </Button>
-                </div>
-                <div className="px-3 py-2">
-                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                        Overview
-                    </h2>
-                    <div className="space-y-1">
-                        {routes.map((route) => (
-                            <Link
-                                key={route.href}
-                                href={route.href}
-                                className={cn(
-                                    'hover:bg-accent hover:text-accent-foreground flex items-center rounded-lg px-3 py-2 text-sm font-medium',
-                                    pathname === route.href
-                                        ? 'bg-accent text-accent-foreground'
-                                        : 'transparent'
-                                )}
-                            >
-                                <route.icon
-                                    className={cn('mr-2 h-4 w-4', route.color)}
-                                />
-                                {route.label}
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </div>
+                </SidebarInset>
+            </SidebarProvider>
         </div>
     )
 }
@@ -156,7 +118,7 @@ export function MobileSidebar({
                 </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
-                <Sidebar projectId={projectId}>{children}</Sidebar>
+                <ProjectSidebar projectId={projectId}>{children}</ProjectSidebar>
             </SheetContent>
         </Sheet>
     )

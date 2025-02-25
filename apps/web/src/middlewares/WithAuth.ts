@@ -85,7 +85,14 @@ export const matcher: Matcher = [
         and: [
             nextauthNoApi,
             nextjsRegexpPageOnly,
-            { or: ['/showcase', '/dashboard', '/settings', '/profile'] },
+            {
+                not: {
+                    or: [
+                        '/auth/login',
+                        '/'
+                    ]
+                }
+            }
         ],
     },
 ]
