@@ -1,7 +1,7 @@
 'use client'
 
 import { DndContext, DragEndEvent } from '@dnd-kit/core'
-import { useOptimistic, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import directus from '@/lib/directus'
 import { useProject } from '@/context/ProjectContext'
@@ -57,10 +57,9 @@ const createTicketSchema = z.object({
 type CreateTicketForm = z.infer<typeof createTicketSchema>
 
 export default function BoardPage() {
-    const { project } = useProject()
+    const { data: project } = useProject()
     const queryClient = useQueryClient()
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [, startTransition] = useTransition()
 
     const form = useForm<CreateTicketForm>({
         resolver: zodResolver(createTicketSchema),
@@ -157,11 +156,7 @@ export default function BoardPage() {
             form.reset()
         },
     })
-
-    const [optimisticTickets, setOptimisticTickets] = useOptimistic<
-        BoardTicket[] | undefined
-    >(tickets)
-
+    
     function mapStatusToBoard(status: string): TicketStatus {
         switch (status) {
             case 'draft':
@@ -315,7 +310,7 @@ export default function BoardPage() {
                             id="todo"
                             title="To Do"
                             tickets={
-                                optimisticTickets?.filter(
+                                tickets?.filter(
                                     (i) => i.status === 'todo'
                                 ) || []
                             }
@@ -324,7 +319,7 @@ export default function BoardPage() {
                             id="in-progress"
                             title="In Progress"
                             tickets={
-                                optimisticTickets?.filter(
+                                tickets?.filter(
                                     (i) => i.status === 'in-progress'
                                 ) || []
                             }
@@ -333,7 +328,7 @@ export default function BoardPage() {
                             id="done"
                             title="Done"
                             tickets={
-                                optimisticTickets?.filter(
+                                tickets?.filter(
                                     (i) => i.status === 'done'
                                 ) || []
                             }

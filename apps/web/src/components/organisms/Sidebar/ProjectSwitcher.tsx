@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Check, ChevronsUpDown, Plus } from 'lucide-react'
+import { Check, ChevronsUpDown, Loader2, Plus } from 'lucide-react'
 
 import { cn } from '@repo/ui/lib/utils'
 import { Button } from '@repo/ui/components/shadcn/button'
@@ -36,18 +36,16 @@ import Link from 'next/link'
 import { useProjectsQuery } from '@/query&mutation/project'
 import { useSession } from 'next-auth/react'
 import { ProjectsProjectId } from '@/routes'
+import { Collections, CollectionsType, Schema } from '@repo/directus-sdk/client'
+import { ApplyFields } from '@repo/directus-sdk/utils'
+import { ApplyQueryFields } from '@repo/directus-sdk/indirectus/types/ApplyQueryFields'
+import directus from '@/lib/directus'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useProject } from '@/context/ProjectContext'
 import { useProjectLoading } from '@/context/ProjectLoadingContext'
 
-// Define project type
-type Project = {
-    id: string
-    name: string
-    logo?: React.ElementType
-    plan?: string
-}
-
 type ProjectSwitcherProps = {
-    projects?: Project[]
+    projects?: ApplyFields<Collections.Projects>[]
 }
 
 export function ProjectSwitcher({
@@ -56,21 +54,34 @@ export function ProjectSwitcher({
     const { data: session } = useSession()
     const params = useParams()
     const router = useRouter()
-    const { setLoading } = useProjectLoading()
     const [open, setOpen] = React.useState(false)
     const [showNewProjectDialog, setShowNewProjectDialog] =
         React.useState(false)
 
+    const { setLoading } = useProjectLoading()
+    const { prefetch } = useProject()
+
     // Find the current project based on the URL
-    const currentProjectId = (params?.projectId as string) || '1'
+    const currentProjectId = Number((params?.projectId as string) || '1')
 
     // Find the selected project from the list of projects
     const [selectedProject, setSelectedProject] =
-        React.useState<Project | null>(null)
+        React.useState<ApplyFields<Collections.Projects> | null>(null)
 
-    const { data: projects = [], isLoading, error } = useProjectsQuery({
-        params: [
-            {
+    directus.Projects.query
+        .bind(directus.Projects)({})
+        .then((projects) => {
+            projects[0]
+        })
+
+    const {
+        data: projects = [],
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: ['projects'],
+        queryFn: () =>
+            directus.Projects.query({
                 filter: {
                     _or: [
                         // {
@@ -89,31 +100,54 @@ export function ProjectSwitcher({
                         },
                     ],
                 },
-            },
-        ],
+            }),
+    })
+
+    const createProjectMutation = useMutation({
+        mutationFn: async (
+            newProject: Pick<
+                ApplyFields<Collections.Projects>,
+                'name' | 'description'
+            >
+        ) => {
+            const response = await directus.Project.create({
+                ...newProject,
+                owner: session?.user?.id,
+            })
+            return response
+        },
+        onSuccess: async (data) => {
+            await prefetch(data.id)
+            setShowNewProjectDialog(false)
+            setLoading(true)
+            ProjectsProjectId.immediate(router, { projectId: data.id })
+        },
+        onError: (error) => {
+            console.error('Error creating project:', error)
+        },
     })
 
     // Set selected project based on URL parameter whenever projects or URL changes
     React.useEffect(() => {
-        if (!projects?.length) return;
-        
+        if (!projects?.length) return
+
         // Always try to match the project from the URL first
-        const projectFromUrl = projects.find(p => p.id === currentProjectId);
-        
+        const projectFromUrl = projects.find((p) => p.id === currentProjectId)
+
         if (projectFromUrl) {
             // If we find a matching project, select it
-            setSelectedProject(projectFromUrl);
+            setSelectedProject(projectFromUrl)
         } else if (!selectedProject && projects.length > 0) {
             // Only if we don't have a selected project yet and no matching URL project,
             // default to the first one
-            setSelectedProject(projects[0]);
-            
+            setSelectedProject(projects[0])
+
             // Optionally, update the URL to match the first project
             // if (projects[0].id) {
             //     ProjectsProjectId.immediate(router, { projectId: projects[0].id });
             // }
         }
-    }, [projects, currentProjectId, selectedProject]);
+    }, [projects, currentProjectId, selectedProject])
 
     // Handle project creation
     const handleCreateProject = async (
@@ -127,48 +161,29 @@ export function ProjectSwitcher({
         if (!name) return
 
         try {
-            // In a real app, you would call your API here
-            // const response = await fetch('/api/projects', {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ name, description }),
-            // });
-            // const newProject = await response.json();
-
-            // For demo, simulate creating a project
-            const newProject = {
-                id: `new-${Date.now()}`,
+            await createProjectMutation.mutateAsync({
                 name,
-                plan: 'New',
-            }
-
-            setSelectedProject(newProject)
-            setShowNewProjectDialog(false)
-
-            // Show loading state
-            setLoading(true)
-            
-            // Navigate to the new project
-            ProjectsProjectId.immediate(router, { projectId: newProject.id })
+                description,
+            })
         } catch (error) {
             console.error('Error creating project:', error)
-            // Add error handling as needed
-            setLoading(false)
         }
     }
 
     // Handle project selection
-    const handleSelectProject = (project: Project) => {
+    const handleSelectProject = (
+        project: ApplyFields<Collections.Projects>
+    ) => {
         // Don't do anything if it's the same project
         if (selectedProject?.id === project.id) {
             setOpen(false)
-            return;
+            return
         }
-        
+
         setSelectedProject(project)
         setOpen(false)
-        
-        // Show loading state
+
+        prefetch(project.id)
         setLoading(true)
 
         // Navigate to the selected project
@@ -229,8 +244,8 @@ export function ProjectSwitcher({
                                 </div>
                             ) : error ? (
                                 <div className="text-muted-foreground p-2 text-center text-sm">
-                                    {error && typeof error === 'object' 
-                                        ? JSON.stringify(error) 
+                                    {error && typeof error === 'object'
+                                        ? JSON.stringify(error)
                                         : String(error)}
                                 </div>
                             ) : (
@@ -338,7 +353,14 @@ export function ProjectSwitcher({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit">Create</Button>
+                        <Button
+                            type="submit"
+                            disabled={createProjectMutation.isPending}
+                        >
+                            Create {createProjectMutation.isPending && (
+                                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                            )}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

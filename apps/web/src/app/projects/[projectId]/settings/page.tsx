@@ -14,7 +14,7 @@ import { Projects } from '@/routes'
 export default function SettingsPage() {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
-  const { project } = useProject();
+  const { data: project } = useProject();
 
   const handleDeleteProject = async () => {
     setIsDeleting(true);

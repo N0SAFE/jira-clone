@@ -21,9 +21,8 @@ import {
     DialogTrigger,
 } from '@repo/ui/components/shadcn/dialog'
 import { useSession } from 'next-auth/react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import React from 'react'
-import { useProjectMutation, useProjectsQuery } from '@/query&mutation/project'
 import { DType, useColumns } from './columns'
 import useTableRef from '@repo/ui/hooks/useTableRef'
 import { DataTablePagination } from '@repo/ui/components/atomics/organisms/DataTable/DataTablePagination'
@@ -31,6 +30,9 @@ import { DataTableProvider } from '@repo/ui/components/atomics/organisms/DataTab
 import { DataTable } from '@repo/ui/components/atomics/organisms/DataTable'
 import { TableCell, TableRow } from '@repo/ui/components/shadcn/table'
 import { flexRender } from '@tanstack/react-table'
+import directus from '@/lib/directus'
+import { ApplyFields } from '@repo/directus-sdk/utils'
+import { Collections } from '@repo/directus-sdk/client'
 
 export function Projects() {
     const queryClient = useQueryClient()
@@ -41,9 +43,10 @@ export function Projects() {
         data: projects,
         isFetched,
         isPlaceholderData,
-    } = useProjectsQuery({
-        params: [
-            {
+    } = useQuery({
+        queryKey: ['projects', session?.user.id],
+        queryFn: () =>
+            directus.Projects.query({
                 filter: {
                     user_created: {
                         _contains: session?.user.id,
@@ -56,11 +59,20 @@ export function Projects() {
                         owner: ['id', 'avatar', 'first_name', 'last_name'],
                     },
                 ],
-            },
-        ],
+            }),
     })
 
-    const projectMutation = useProjectMutation({
+    const projectMutation = useMutation({
+        mutationFn: (
+            newProject: Pick<
+                ApplyFields<Collections.Projects>,
+                'name' | 'description'
+            >
+        ) =>
+            directus.Project.create({
+                ...newProject,
+                owner: session?.user.id,
+            }),
         onSuccess: () => {
             queryClient.invalidateQueries({
                 predicate: (query) => {
@@ -100,12 +112,7 @@ export function Projects() {
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <NewProject
-                                onSubmit={(d) =>
-                                    projectMutation.mutate({
-                                        ...d,
-                                        owner: session?.user.id,
-                                    })
-                                }
+                                onSubmit={projectMutation.mutate}
                                 isPending={projectMutation.isPending}
                             />
                         </div>

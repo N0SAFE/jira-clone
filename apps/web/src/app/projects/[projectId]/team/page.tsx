@@ -23,7 +23,7 @@ type TeamMember = {
 
 export default function TeamPage() {
     const { data: session } = useSession()
-    const { project } = useProject()
+    const { data: project } = useProject()
 
     const members = project?.members?.map((member) => {
         const user = member.directus_user

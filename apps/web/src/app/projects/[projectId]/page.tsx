@@ -13,9 +13,9 @@ import directus from '@/lib/directus'
 import { useProject } from '@/context/ProjectContext'
 
 export default function DashboardPage() {
-    const { project } = useProject();
-
-    const { data: tickets } = useQuery({
+    const { data: project } = useProject() ?? {}
+    
+    const { data: tickets = [] } = useQuery({
         queryKey: ['projects', project?.id, 'tickets'],
         queryFn: async () => {
             return directus.Tickets.query({

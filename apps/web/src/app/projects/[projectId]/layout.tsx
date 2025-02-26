@@ -44,7 +44,7 @@ export default async function ProjectLayout({
     await queryClient.prefetchQuery({
         queryKey: [...projectsParams],
         queryFn: async () => {
-            return directus.Projects.query(...projectsParams as any)
+            return directus.Projects.query(...(projectsParams as any))
         },
     })
 
