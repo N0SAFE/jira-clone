@@ -108,29 +108,6 @@ export const useColumns = (options?: ColumnOptions) => {
                 )
             },
         },
-        // {
-        //     id: 'actions',
-        //     enableHiding: false,
-        //     header: ({ table }) => {
-        //         if (
-        //             table.getIsSomeRowsSelected() ||
-        //             table.getIsAllRowsSelected()
-        //         ) {
-        //             return (
-        //                 <ActionsCellHeader
-        //                     rows={table.getSelectedRowModel().rows}
-        //                     options={options}
-        //                 />
-        //             )
-        //         }
-        //         return null
-        //     },
-        //     cell: (cellContext): React.ReactNode => {
-        //         return (
-        //             <ActionsCellRow row={cellContext.row} options={options} />
-        //         )
-        //     },
-        // },
     ]
     return columns
 }

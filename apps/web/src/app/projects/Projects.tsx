@@ -33,8 +33,10 @@ import { flexRender } from '@tanstack/react-table'
 import directus from '@/lib/directus'
 import { ApplyFields } from '@repo/directus-sdk/utils'
 import { Collections } from '@repo/directus-sdk/client'
+import { useRouter } from 'next/navigation'
 
 export function Projects() {
+    const router = useRouter()
     const queryClient = useQueryClient()
 
     const { data: session } = useSession()
@@ -145,7 +147,12 @@ export function Projects() {
                         <TableRow
                             className="hover:bg-accent/50 hover:cursor-pointer"
                             data-state={row.getIsSelected() && 'selected'}
-                            onClick={() => console.log('clicked')}
+                            onClick={() => {
+                                const rowId = row.original.id
+                                if (rowId) {
+                                    ProjectsProjectId.immediate(router, { projectId: rowId })
+                                }
+                            }}
                         >
                             {row.getVisibleCells().map((cell) => (
                                 <TableCell

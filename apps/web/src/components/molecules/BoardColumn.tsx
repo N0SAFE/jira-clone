@@ -7,7 +7,7 @@ import { ApplyFields } from "@repo/directus-sdk/indirectus/utils"
 
 interface BoardColumnProps {
   title: string
-  tickets: ApplyFields<Collections.Tickets, ['title', 'id', 'priority']>[]
+  tickets: ApplyFields<Collections.Tickets, ['title', 'id', 'priority', 'status']>[]
   id: string
 }
 

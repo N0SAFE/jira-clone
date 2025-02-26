@@ -1,100 +1,126 @@
-"use client"
+'use client'
 
-import { BoardHeader } from '@/components/organisms/BoardHeader'
-import { Button } from '@repo/ui/components/shadcn/button'
-import { Input } from '@repo/ui/components/shadcn/input'
-import { Label } from '@repo/ui/components/shadcn/label'
-import { Textarea } from '@repo/ui/components/shadcn/textarea'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@repo/ui/components/shadcn/alert-dialog";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useProject } from "@/context/ProjectContext";
-import { Projects } from '@/routes'
+import { useProject } from '@/context/ProjectContext'
+import { ProjectSettingsForm } from '@/components/forms/ProjectSettingsForm'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import directus from '@/lib/directus'
+import { useToast } from '@repo/ui/hooks/use-toast'
+import { Collections, Schema } from '@repo/directus-sdk/client'
+import { ApplyFields } from '@repo/directus-sdk/utils'
 
-export default function SettingsPage() {
-  const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const { data: project } = useProject();
+interface BoardSettings {
+    columns: Array<{
+        id: string
+        label: string
+        enabled: boolean
+    }>
+}
 
-  const handleDeleteProject = async () => {
-    setIsDeleting(true);
-    try {
-      // TODO: Implement project deletion API call
-      Projects.immediate(router);
-    } catch (error) {
-      console.error('Failed to delete project:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+type ProjectSettings = ApplyFields<Collections.ProjectsSettings>
 
-  return (
-    <div className="space-y-4 p-8 pt-6">
-      <BoardHeader>
-        <h2 className="text-3xl font-bold tracking-tight">Project Settings</h2>
-      </BoardHeader>
+type ProjectSettingsCreatePayload = {
+    project: Collections.Projects['id']
+    status: 'active'
+    board_settings: BoardSettings
+}
 
-      <div className="rounded-md border p-4 space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="projectName">Project Name</Label>
-          <Input id="projectName" defaultValue={project?.name || ''} />
+export default function ProjectSettingsPage() {
+    const project = useProject()
+    const { toast } = useToast()
+    const queryClient = useQueryClient()
+
+    const { data: settings } = useQuery<ProjectSettings | null>({
+        queryKey: ['projects', project?.data?.id, 'settings'],
+        queryFn: async () => {
+            if (!project?.data?.id) return null
+            try {
+                const result = await directus.ProjectsSettings.find({
+                    filter: {
+                        _and: [
+                            {
+                                statuses: {
+                                    _some: [
+                                        {
+                                            name: { _eq: 'active' },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                })
+                return result && Array.isArray(result) && result.length > 0
+                    ? result[0]
+                    : null
+            } catch (error) {
+                console.error('Error fetching settings:', error)
+                return null
+            }
+        },
+        enabled: !!project?.data?.id,
+    })
+
+    const updateSettings = useMutation({
+        mutationFn: async (data: BoardSettings) => {
+            if (!project?.data?.id) return null
+            const payload: ProjectSettingsCreatePayload = {
+                project: project.data.id,
+                status: 'active',
+                board_settings: data,
+            }
+            try {
+                if (settings?.id) {
+                    return directus.ProjectsSetting.update(settings.id, {
+                        project: project.data.id,
+                        // @ts-expect-error
+                        statuses: [
+                            {
+                                name: 'active',
+                            },
+                            ...settings.statuses,
+                        ],
+                    })
+                } else {
+                    return directus.ProjectsSetting.create({
+                        project: project.data.id,
+                        statuses: [
+                            // @ts-expect-error
+                            {
+                                name: 'active',
+                                sort: 1,
+                            },
+                        ],
+                    })
+                }
+            } catch (error) {
+                console.error('Error updating settings:', error)
+                throw error
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ['projects', project?.data?.id, 'settings'],
+            })
+            toast({
+                title: 'Settings updated',
+                description:
+                    'Your board settings have been saved successfully.',
+            })
+        },
+    })
+
+    if (!project?.data) return null
+
+    return (
+        <div className="space-y-4 p-8 pt-6">
+            <h2 className="text-3xl font-bold tracking-tight">
+                Project Settings
+            </h2>
+            <ProjectSettingsForm
+                project={project.data}
+                defaultValues={settings?.board_settings}
+                onSubmit={updateSettings.mutate}
+            />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Project Description</Label>
-          <Textarea 
-            id="description" 
-            defaultValue={project?.description || ''}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="timezone">Timezone</Label>
-          <Input id="timezone" defaultValue="UTC+00:00" />
-        </div>
-
-        <Button>Save Changes</Button>
-      </div>
-
-      <div className="rounded-md border border-destructive/50 p-4 space-y-2">
-        <h3 className="text-xl font-medium text-destructive">Danger Zone</h3>
-        <p className="text-sm text-muted-foreground">Destructive actions that cannot be undone</p>
-        
-        <div className="border-t border-destructive/20 pt-4 mt-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium">Delete Project</h4>
-              <p className="text-sm text-muted-foreground">
-                Permanently delete this project and all its data
-              </p>
-            </div>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Delete Project</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the project
-                    and all associated data including tickets, comments, and files.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    disabled={isDeleting}
-                    onClick={handleDeleteProject}
-                    className="bg-destructive hover:bg-destructive/90"
-                  >
-                    {isDeleting ? 'Deleting...' : 'Delete'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+    )
 }

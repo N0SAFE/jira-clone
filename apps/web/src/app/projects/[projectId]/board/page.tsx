@@ -37,6 +37,7 @@ import {
     SelectValue,
 } from '@repo/ui/components/shadcn/select'
 import { Textarea } from '@repo/ui/components/shadcn/textarea'
+import { Board } from "@/components/organisms/Board"
 
 type TicketStatus = 'todo' | 'in-progress' | 'done'
 
@@ -67,6 +68,27 @@ export default function BoardPage() {
             priority: 'low',
         },
     })
+
+    // Fetch board settings
+    const { data: settings } = useQuery({
+        queryKey: ['projects', project?.id, 'settings'],
+        queryFn: async () => {
+            if (!project?.id) return null
+            const result = await directus.ProjectsSettings.findOne({
+                filter: {
+                    project: project.id,
+                }
+            })
+            return result
+        },
+        enabled: !!project?.id,
+    })
+
+    const defaultColumns = [
+        { id: "todo", label: "To Do", enabled: true },
+        { id: "in-progress", label: "In Progress", enabled: true },
+        { id: "done", label: "Done", enabled: true },
+    ]
 
     const updateTicketStatus = useMutation({
         mutationFn: async ({ id, status }: { id: number; status: string }) => {
@@ -204,6 +226,10 @@ export default function BoardPage() {
         createTicket.mutate(data)
     }
 
+    if (!project) return null
+
+    const columns = settings?.board_settings?.columns || defaultColumns
+
     return (
         <div className="space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between">
@@ -303,39 +329,11 @@ export default function BoardPage() {
                     </DialogContent>
                 </Dialog>
             </div>
-            <div className="rounded-md border p-4">
-                <DndContext onDragEnd={handleDragEnd}>
-                    <div className="mt-4 grid grid-cols-3 gap-4">
-                        <BoardColumn
-                            id="todo"
-                            title="To Do"
-                            tickets={
-                                tickets?.filter(
-                                    (i) => i.status === 'todo'
-                                ) || []
-                            }
-                        />
-                        <BoardColumn
-                            id="in-progress"
-                            title="In Progress"
-                            tickets={
-                                tickets?.filter(
-                                    (i) => i.status === 'in-progress'
-                                ) || []
-                            }
-                        />
-                        <BoardColumn
-                            id="done"
-                            title="Done"
-                            tickets={
-                                tickets?.filter(
-                                    (i) => i.status === 'done'
-                                ) || []
-                            }
-                        />
-                    </div>
-                </DndContext>
-            </div>
+            <Board
+                tickets={tickets || []}
+                onDragEnd={handleDragEnd}
+                columns={columns}
+            />
         </div>
     )
 }
