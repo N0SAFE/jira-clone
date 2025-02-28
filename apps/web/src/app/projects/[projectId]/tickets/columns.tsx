@@ -24,8 +24,8 @@ export type DType = ApplyFields<
 >
 
 export type ColumnOptions = {
-    colors: ApplyFields<Collections.TicketsStatus, ['id', 'color']>[]
-    priorities: ApplyFields<Collections.TicketsPriorities, ['id', 'color']>[]
+    colors: ApplyFields<Collections.TicketsStatus, ['id', 'color', 'name']>[]
+    priorities: ApplyFields<Collections.TicketsPriorities, ['id', 'color', 'name']>[]
 }
 
 export const useColumns = (options: ColumnOptions) =>
@@ -42,17 +42,17 @@ export const useColumns = (options: ColumnOptions) =>
             size: 120,
             filterFn: 'equals',
             cell: ({ row }) => {
-                const status = row.original.status
+                const statusId = row.original.status
+                const statusObj = options.colors.find(s => s.id === statusId)
+                
                 return (
                     <Badge
                         variant="secondary"
                         style={{
-                            backgroundColor: options.colors.find(
-                                (color) => color.id === status
-                            )?.color,
+                            backgroundColor: statusObj?.color || '#ccc',
                         }}
                     >
-                        {status}
+                        {statusObj?.name || 'Unknown'}
                     </Badge>
                 )
             },
@@ -63,18 +63,18 @@ export const useColumns = (options: ColumnOptions) =>
             size: 120,
             filterFn: 'equals',
             cell: ({ row }) => {
-                const priority = row.original.priority
+                const priorityId = row.original.priority
+                const priorityObj = options.priorities.find(p => p.id === priorityId)
+                
                 return (
                     <div className="flex items-center gap-2">
                         <div
                             className={cn('h-2 w-2 rounded-full')}
                             style={{
-                                backgroundColor: options.priorities.find(
-                                    (color) => color.id === priority
-                                )?.color,
+                                backgroundColor: priorityObj?.color || '#ccc',
                             }}
                         />
-                        <span>{priority}</span>
+                        <span>{priorityObj?.name || 'None'}</span>
                     </div>
                 )
             },

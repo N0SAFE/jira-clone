@@ -37,73 +37,68 @@ import {
     SelectValue,
 } from '@repo/ui/components/shadcn/select'
 import { Textarea } from '@repo/ui/components/shadcn/textarea'
-import { Board } from "@/components/organisms/Board"
-
-type TicketStatus = 'todo' | 'in-progress' | 'done'
+import { Board } from '@/components/organisms/Board'
 
 type BoardTicket = {
     id: number
-    status: TicketStatus
+    status: Collections.TicketsStatus['id']
     title: string
     priority: Collections.Tickets['priority']
     description?: string
 }
 
-const createTicketSchema = z.object({
-    title: z.string().min(1, 'Title is required'),
-    description: z.string().optional(),
-    priority: z.enum(['low', 'high']),
-})
-
-type CreateTicketForm = z.infer<typeof createTicketSchema>
-
 export default function BoardPage() {
-    const { data: project } = useProject()
+    const { data: project } = useProject() ?? {}
     const queryClient = useQueryClient()
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+    const createTicketSchema = z.object({
+        title: z.string().min(1, 'Title is required'),
+        description: z.string().optional(),
+        // priorityShouldBeANumber from the project?.priorities list
+        priority: z.number().refine(
+            (val) => {
+                return project?.priorities?.some(
+                    (priority) => priority.id === val
+                )
+            },
+            {
+                message: 'Priority is required',
+            }
+        ),
+    })
+
+    type CreateTicketForm = z.infer<typeof createTicketSchema>
 
     const form = useForm<CreateTicketForm>({
         resolver: zodResolver(createTicketSchema),
         defaultValues: {
-            priority: 'low',
+            priority: project?.priorities?.[0]?.id,
         },
     })
-
-    // Fetch board settings
-    const { data: settings } = useQuery({
-        queryKey: ['projects', project?.id, 'settings'],
-        queryFn: async () => {
-            if (!project?.id) return null
-            const result = await directus.ProjectsSettings.findOne({
-                filter: {
-                    project: project.id,
-                }
-            })
-            return result
-        },
-        enabled: !!project?.id,
-    })
-
-    const defaultColumns = [
-        { id: "todo", label: "To Do", enabled: true },
-        { id: "in-progress", label: "In Progress", enabled: true },
-        { id: "done", label: "Done", enabled: true },
-    ]
 
     const updateTicketStatus = useMutation({
-        mutationFn: async ({ id, status }: { id: number; status: string }) => {
-            return directus.Ticket.update(id, {
-                status: mapBoardToStatus(status as TicketStatus),
-            })
+        mutationFn: async ({
+            id,
+            status,
+        }: {
+            id: Collections.Tickets['id']
+            status: Collections.TicketsStatus['id']
+        }) => {
+            return directus.Ticket.update(id, { status })
         },
         onMutate: async ({ id, status }) => {
             // Cancel outgoing refetches
-            await queryClient.cancelQueries({ 
-                queryKey: ['projects', project?.id, 'tickets']
+            await queryClient.cancelQueries({
+                queryKey: ['projects', project?.id, 'tickets'],
             })
 
             // Get the previous state
-            const previousTickets = queryClient.getQueryData(['projects', project?.id, 'tickets'])
+            const previousTickets = queryClient.getQueryData([
+                'projects',
+                project?.id,
+                'tickets',
+            ])
 
             // Update the cache with optimistic data
             queryClient.setQueryData(
@@ -114,7 +109,7 @@ export default function BoardPage() {
                         if (ticket.id === id) {
                             return {
                                 ...ticket,
-                                status: status as TicketStatus,
+                                status: status,
                             }
                         }
                         return ticket
@@ -144,16 +139,15 @@ export default function BoardPage() {
     const { data: tickets } = useQuery({
         queryKey: ['projects', project?.id, 'tickets'],
         queryFn: async () => {
-            const result = await directus.Tickets.query({
+            return directus.Tickets.query({
                 filter: {
                     project: project?.id,
                 },
-                fields: ['id', 'title', 'status', 'priority', 'description'],
+                fields: ['id', 'title', 'description', {
+                    priority: ['color', 'id'],
+                    status: ['name', 'color', 'id'],
+                }],
             })
-            return (result || []).map((ticket) => ({
-                ...ticket,
-                status: mapStatusToBoard(ticket.status),
-            })) as BoardTicket[]
         },
         enabled: !!project?.id,
     })
@@ -166,7 +160,7 @@ export default function BoardPage() {
                     description: data.description,
                     priority: data.priority,
                     project: project?.id,
-                    status: 'draft', // This will map to 'todo' on the board
+                    status: project?.statuses?.[0]?.id,
                 },
             ])
         },
@@ -178,32 +172,6 @@ export default function BoardPage() {
             form.reset()
         },
     })
-    
-    function mapStatusToBoard(status: string): TicketStatus {
-        switch (status) {
-            case 'draft':
-                return 'todo'
-            case 'published':
-                return 'in-progress'
-            case 'archived':
-                return 'done'
-            default:
-                return 'todo'
-        }
-    }
-
-    function mapBoardToStatus(status: TicketStatus): Collections.Tickets['status'] {
-        switch (status) {
-            case 'todo':
-                return 'draft'
-            case 'in-progress':
-                return 'published'
-            case 'done':
-                return 'archived'
-            default:
-                return 'draft'
-        }
-    }
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
@@ -213,12 +181,12 @@ export default function BoardPage() {
         }
 
         const activeId = active.id as number
-        const overId = over.id as TicketStatus
+        const overId = over.id
 
         // Update the ticket status
         updateTicketStatus.mutate({
             id: activeId,
-            status: overId,
+            status: Number(overId),
         })
     }
 
@@ -227,8 +195,6 @@ export default function BoardPage() {
     }
 
     if (!project) return null
-
-    const columns = settings?.board_settings?.columns || defaultColumns
 
     return (
         <div className="space-y-4 p-8 pt-6">
@@ -294,7 +260,7 @@ export default function BoardPage() {
                                             <FormLabel>Priority</FormLabel>
                                             <Select
                                                 onValueChange={field.onChange}
-                                                defaultValue={field.value}
+                                                defaultValue={`${field.value}`}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger>
@@ -302,13 +268,23 @@ export default function BoardPage() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="low">
-                                                        Low
-                                                    </SelectItem>
-                                                    {/* <SelectItem value="medium">Medium</SelectItem> */}
-                                                    <SelectItem value="high">
-                                                        High
-                                                    </SelectItem>
+                                                    {project?.priorities?.map(
+                                                        (priority) => (
+                                                            <SelectItem
+                                                                key={
+                                                                    priority.id
+                                                                }
+                                                                value={`${priority.id}`}
+                                                            >
+                                                                {priority.name
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                    priority.name.slice(
+                                                                        1
+                                                                    )}
+                                                            </SelectItem>
+                                                        )
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -332,7 +308,7 @@ export default function BoardPage() {
             <Board
                 tickets={tickets || []}
                 onDragEnd={handleDragEnd}
-                columns={columns}
+                statuses={project?.statuses || []}
             />
         </div>
     )

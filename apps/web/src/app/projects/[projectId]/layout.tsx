@@ -11,6 +11,8 @@ import {
 } from '@tanstack/react-query'
 import { auth } from '@/lib/auth'
 import directus from '@/lib/directus'
+import type * as Directus from '@directus/sdk'
+import { Schema, Collections } from '@repo/directus-sdk/client'
 
 export default async function ProjectLayout({
     children,
@@ -38,8 +40,20 @@ export default async function ProjectLayout({
                     },
                 ],
             },
+            fields: [
+                '*',
+                {
+                    owner: ['id', 'avatar', 'first_name', 'last_name'],
+                    user_created: ['id', 'avatar', 'first_name', 'last_name'],
+                    priorities: ['*'],
+                    statuses: ['*'],
+                    members: ['id', {
+                        directus_user: ['id', 'avatar', 'first_name', 'last_name'],
+                    }],
+                },
+            ]
         },
-    ] as const
+    ] satisfies [Directus.Query<Schema, Collections.Projects>]
 
     await queryClient.prefetchQuery({
         queryKey: [...projectsParams],
@@ -52,7 +66,7 @@ export default async function ProjectLayout({
         <HydrationBoundary state={dehydrate(queryClient)}>
             <ProjectLoadingProvider>
                 <ProjectProvider>
-                    <div className="relative flex">
+                    <div className="relative flex h-full overflow-hidden">
                         <ProjectSidebar projectId={Number(projectId)}>
                             <div className="relative flex-1">
                                 <ProjectLoadingOverlay />

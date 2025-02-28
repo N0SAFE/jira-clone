@@ -13,29 +13,88 @@ import { Collections } from '@repo/directus-sdk/client'
 import { ApplyFields } from '@repo/directus-sdk/indirectus/utils'
 import { ProjectsProjectId } from '@/routes'
 
-const getStatusColor = (status: string) => {
-    const statusColors: Record<string, string> = {
-        open: 'bg-green-100 text-green-800',
-        closed: 'bg-gray-100 text-gray-800',
-        in_progress: 'bg-blue-100 text-blue-800',
-        blocked: 'bg-red-100 text-red-800',
-        pending: 'bg-yellow-100 text-yellow-800',
+const getStatusColor = (status: any) => {
+    if (!status) return 'bg-gray-100 text-gray-800'
+    
+    // Handle case when status is an object with a name property
+    if (typeof status === 'object' && status !== null) {
+        if (status.name) {
+            const statusName = status.name.toLowerCase();
+            const statusColors: Record<string, string> = {
+                open: 'bg-green-100 text-green-800',
+                closed: 'bg-gray-100 text-gray-800',
+                in_progress: 'bg-blue-100 text-blue-800',
+                blocked: 'bg-red-100 text-red-800',
+                pending: 'bg-yellow-100 text-yellow-800',
+                todo: 'bg-purple-100 text-purple-800',
+                done: 'bg-green-100 text-green-800',
+            }
+            return statusColors[statusName] || 'bg-gray-100 text-gray-800'
+        }
+        
+        // If status has a color property, use it directly
+        if (status.color) {
+            return `bg-opacity-20 text-opacity-90 bg-${status.color} text-${status.color}`
+        }
+        
+        return 'bg-gray-100 text-gray-800'
     }
-    return statusColors[status.toLowerCase()] || 'bg-gray-100 text-gray-800'
+    
+    // Handle string status (original behavior)
+    if (typeof status === 'string') {
+        const statusColors: Record<string, string> = {
+            open: 'bg-green-100 text-green-800',
+            closed: 'bg-gray-100 text-gray-800',
+            in_progress: 'bg-blue-100 text-blue-800',
+            blocked: 'bg-red-100 text-red-800',
+            pending: 'bg-yellow-100 text-yellow-800',
+            todo: 'bg-purple-100 text-purple-800',
+            done: 'bg-green-100 text-green-800',
+        }
+        return statusColors[status.toLowerCase()] || 'bg-gray-100 text-gray-800'
+    }
+    
+    return 'bg-gray-100 text-gray-800'
 }
 
-const getPriorityBadge = (priority: string) => {
-    const priorities: Record<string, { color: string; label: string }> = {
-        high: { color: 'bg-red-100 text-red-800', label: 'High' },
-        medium: { color: 'bg-yellow-100 text-yellow-800', label: 'Medium' },
-        low: { color: 'bg-blue-100 text-blue-800', label: 'Low' },
+const getPriorityBadge = (priority: string | any) => {
+    // Handle case when priority is null or undefined
+    if (!priority) {
+        return { color: 'bg-gray-100 text-gray-800', label: 'None' };
     }
-    return (
-        priorities[priority.toLowerCase()] || {
+    
+    // Handle case when priority is an object with a name property
+    if (typeof priority === 'object' && priority !== null) {
+        if (priority.name) {
+            const priorityName = priority.name.toLowerCase();
+            const priorities: Record<string, { color: string; label: string }> = {
+                high: { color: 'bg-red-100 text-red-800', label: 'High' },
+                medium: { color: 'bg-yellow-100 text-yellow-800', label: 'Medium' },
+                low: { color: 'bg-blue-100 text-blue-800', label: 'Low' },
+            };
+            return priorities[priorityName] || { 
+                color: priority.color ? `bg-opacity-20 text-opacity-90 bg-${priority.color} text-${priority.color}` : 'bg-gray-100 text-gray-800',
+                label: priority.name 
+            };
+        }
+        
+        return { color: 'bg-gray-100 text-gray-800', label: 'Unknown' };
+    }
+    
+    // Handle string priority (original behavior)
+    if (typeof priority === 'string') {
+        const priorities: Record<string, { color: string; label: string }> = {
+            high: { color: 'bg-red-100 text-red-800', label: 'High' },
+            medium: { color: 'bg-yellow-100 text-yellow-800', label: 'Medium' },
+            low: { color: 'bg-blue-100 text-blue-800', label: 'Low' },
+        };
+        return priorities[priority.toLowerCase()] || {
             color: 'bg-gray-100 text-gray-800',
             label: priority,
-        }
-    )
+        };
+    }
+    
+    return { color: 'bg-gray-100 text-gray-800', label: 'Unknown' };
 }
 
 const formatDate = (dateString?: string) => {

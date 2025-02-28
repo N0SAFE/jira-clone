@@ -11,19 +11,10 @@ import type { CSSProperties } from 'react'
 import { useParams } from 'next/navigation'
 
 interface TicketCardProps {
-  ticket: ApplyFields<Collections.Tickets, ['title', 'id', 'priority', 'status']>
-}
-
-const PRIORITY_COLORS = {
-  high: "bg-red-500",
-  medium: "bg-yellow-500",
-  low: "bg-blue-500"
-}
-
-const STATUS_COLORS = {
-  draft: "bg-gray-100 text-gray-800",
-  published: "bg-green-100 text-green-800",
-  archived: "bg-red-100 text-red-800"
+  ticket: ApplyFields<Collections.Tickets, ['title', 'id', {
+    priority: ['color', 'id'],
+    status: ['color', 'name', 'id']
+  }]>
 }
 
 export function TicketCard({ ticket }: TicketCardProps) {
@@ -60,9 +51,13 @@ export function TicketCard({ ticket }: TicketCardProps) {
               <h3 className="font-medium text-sm">{ticket.title}</h3>
               
               <div className="flex items-center gap-2">
-                <div className={cn("w-2 h-2 rounded-full", PRIORITY_COLORS[ticket.priority])} />
-                <Badge variant="secondary" className={STATUS_COLORS[ticket.status]}>
-                  {ticket.status}
+                <div className={cn("w-2 h-2 rounded-full")} style={{
+                  backgroundColor: ticket.priority.color
+                }} />
+                <Badge variant="secondary" style={{
+                  backgroundColor: ticket.status.color
+                }}>
+                  {ticket.status.name}
                 </Badge>
               </div>
             </CardContent>

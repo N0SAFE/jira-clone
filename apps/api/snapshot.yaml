@@ -656,7 +656,7 @@ fields:
       options: null
       readonly: false
       required: true
-      sort: 6
+      sort: 7
       special: null
       translations: null
       validation: null
@@ -695,7 +695,7 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: 7
+      sort: 8
       special: null
       translations: null
       validation: null
@@ -735,7 +735,7 @@ fields:
         enableLink: true
       readonly: false
       required: true
-      sort: 8
+      sort: 9
       special:
         - m2o
       translations: null
@@ -779,7 +779,7 @@ fields:
         sort: null
       readonly: false
       required: false
-      sort: 9
+      sort: 10
       special:
         - o2m
       translations: null
@@ -805,7 +805,7 @@ fields:
         layout: table
       readonly: false
       required: false
-      sort: 10
+      sort: 11
       special:
         - m2m
       translations: null
@@ -832,7 +832,7 @@ fields:
         sort: null
       readonly: false
       required: false
-      sort: 11
+      sort: 12
       special:
         - o2m
       translations: null
@@ -859,13 +859,52 @@ fields:
         sort: null
       readonly: false
       required: false
-      sort: 12
+      sort: 13
       special:
         - o2m
       translations: null
       validation: null
       validation_message: null
       width: full
+  - collection: projects
+    field: key
+    type: string
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: key
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: key
+      table: projects
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: true
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: projects_directus_users
     field: id
     type: integer
@@ -1804,6 +1843,45 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: tickets_priority
+    field: level
+    type: integer
+    meta:
+      collection: tickets_priority
+      conditions: null
+      display: null
+      display_options: null
+      field: level
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: level
+      table: tickets_priority
+      data_type: int
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: tickets_status
     field: id
     type: integer
@@ -2152,6 +2230,45 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: tickets_status
+    field: order
+    type: integer
+    meta:
+      collection: tickets_status
+      conditions: null
+      display: null
+      display_options: null
+      field: order
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 10
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: order
+      table: tickets_status
+      data_type: int
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
 relations:
   - collection: comments
     field: user_created

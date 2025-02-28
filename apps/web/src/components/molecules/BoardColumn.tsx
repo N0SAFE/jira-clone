@@ -6,9 +6,12 @@ import { ApplyFields } from "@repo/directus-sdk/indirectus/utils"
 import { cn } from "@repo/ui/lib/utils"
 
 interface BoardColumnProps {
-  title: string
-  tickets: ApplyFields<Collections.Tickets, ['title', 'id', 'priority', 'status']>[]
-  id: string
+  title: Collections.TicketsStatus['name']
+  tickets: ApplyFields<Collections.Tickets, ['title', 'id', {
+    priority: ['color', 'id'],
+    status: ['name', 'color', 'id'],
+  }]>[]
+  id: Collections.TicketsStatus['id']
 }
 
 export function BoardColumn({ title, tickets, id }: BoardColumnProps) {

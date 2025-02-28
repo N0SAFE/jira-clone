@@ -94,7 +94,7 @@ export default function TicketsPage() {
         filter: {
           project: project?.id,
         },
-        fields: ['color', 'id'],
+        fields: ['color', 'id', 'name'],
       })
     },
     enabled: !!project?.id,
@@ -107,7 +107,7 @@ export default function TicketsPage() {
         filter: {
           project: project?.id,
         },
-        fields: ['color', 'id'],
+        fields: ['color', 'id', 'name'],
       })
     },
     enabled: !!project?.id,

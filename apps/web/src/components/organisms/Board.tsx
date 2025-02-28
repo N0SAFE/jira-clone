@@ -5,16 +5,15 @@ import { BoardColumn } from "@/components/molecules/BoardColumn"
 import {  snapCenterToCursor } from "@dnd-kit/modifiers"
 
 interface BoardProps {
-  tickets: ApplyFields<Collections.Tickets, ['title', 'id', 'priority', 'status']>[]
+  tickets: ApplyFields<Collections.Tickets, ['title', 'id', {
+    priority: ['color', 'id'],
+    status: ['color', 'name', 'id'],
+  }]>[]
   onDragEnd: (event: DragEndEvent) => void
-  columns: Array<{
-    id: string
-    label: string
-    enabled: boolean
-  }>
+  statuses: ApplyFields<Collections.TicketsStatus>[]
 }
 
-export function Board({ tickets, onDragEnd, columns }: BoardProps) {
+export function Board({ tickets, onDragEnd, statuses }: BoardProps) {
   // Configure sensors for better touch/mouse handling
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -30,9 +29,6 @@ export function Board({ tickets, onDragEnd, columns }: BoardProps) {
   })
 
   const sensors = useSensors(mouseSensor, touchSensor)
-
-  // Filter out disabled columns and map tickets to enabled columns
-  const enabledColumns = columns.filter(col => col.enabled)
   
   return (
     <DndContext 
@@ -41,12 +37,12 @@ export function Board({ tickets, onDragEnd, columns }: BoardProps) {
       modifiers={[snapCenterToCursor]}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {enabledColumns.map((column) => (
+        {statuses.map((status) => (
           <BoardColumn
-            key={column.id}
-            id={column.id}
-            title={column.label}
-            tickets={tickets.filter((ticket) => ticket.status === column.id)}
+            key={status.id}
+            id={status.id}
+            title={status.name}
+            tickets={tickets.filter((ticket) => ticket.status.id === status.id)}
           />
         ))}
       </div>
