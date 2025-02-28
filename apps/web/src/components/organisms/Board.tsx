@@ -1,31 +1,48 @@
-import { DndContext, DragEndEvent } from "@dnd-kit/core"
+import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core"
 import { Collections } from "@repo/directus-sdk/client"
 import { ApplyFields } from "@repo/directus-sdk/indirectus/utils"
 import { BoardColumn } from "@/components/molecules/BoardColumn"
+import {  snapCenterToCursor } from "@dnd-kit/modifiers"
 
 interface BoardProps {
-  tickets: ApplyFields<Collections.Tickets, ['title', 'id', 'priority', 'status']>[]
+  tickets: ApplyFields<Collections.Tickets, ['title', 'id', {
+    priority: ['color', 'id'],
+    status: ['color', 'name', 'id'],
+  }]>[]
   onDragEnd: (event: DragEndEvent) => void
-  columns: Array<{
-    id: string
-    label: string
-    enabled: boolean
-  }>
+  statuses: ApplyFields<Collections.TicketsStatus>[]
 }
 
-export function Board({ tickets, onDragEnd, columns }: BoardProps) {
-  // Filter out disabled columns and map tickets to enabled columns
-  const enabledColumns = columns.filter(col => col.enabled)
+export function Board({ tickets, onDragEnd, statuses }: BoardProps) {
+  // Configure sensors for better touch/mouse handling
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: {
+      distance: 10, // 10px movement before drag starts
+    },
+  })
+  
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: {
+      delay: 250, // Wait 250ms before drag starts
+      tolerance: 5, // Allow 5px movement before canceling
+    },
+  })
+
+  const sensors = useSensors(mouseSensor, touchSensor)
   
   return (
-    <DndContext onDragEnd={onDragEnd}>
+    <DndContext 
+      onDragEnd={onDragEnd}
+      sensors={sensors}
+      modifiers={[snapCenterToCursor]}
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {enabledColumns.map((column) => (
+        {statuses.map((status) => (
           <BoardColumn
-            key={column.id}
-            id={column.id}
-            title={column.label}
-            tickets={tickets.filter((ticket) => ticket.status === column.id)}
+            key={status.id}
+            id={status.id}
+            title={status.name}
+            tickets={tickets.filter((ticket) => ticket.status.id === status.id)}
           />
         ))}
       </div>

@@ -2,62 +2,36 @@
 
 import React, { createContext, useContext, ReactNode } from 'react'
 import { useParams } from 'next/navigation'
-import { Collections } from '@repo/directus-sdk/client'
+import { Collections, Schema } from '@repo/directus-sdk/client'
 import { useQuery, useQueryClient, UseQueryResult } from '@tanstack/react-query'
 import directus from '@/lib/directus'
 import { useProjectLoading } from './ProjectLoadingContext'
 import { ApplyFields } from '@repo/directus-sdk/utils'
+import { Query } from '@repo/directus-sdk/index'
 
 export const fields = [
-    'id',
-    'name',
-    'description',
-    'status',
-    'date_created',
-    'date_updated',
+    '*',
     {
-        user_created: [
-            'id',
-            'first_name',
-            'last_name',
-            'email',
-            'role',
-            'avatar',
-        ],
-    },
-    {
-        owner: [
-            'id',
-            'first_name',
-            'last_name',
-            'email',
-            'role',
-            'avatar',
-        ],
-    },
-    {
+        owner: ['id', 'avatar', 'first_name', 'last_name'],
+        user_created: ['id', 'avatar', 'first_name', 'last_name'],
+        priorities: ['*'],
+        statuses: ['*'],
         members: [
             'id',
             {
-                directus_user: [
-                    'id',
-                    'first_name',
-                    'last_name',
-                    'email',
-                    'role',
-                    'avatar',
-                ],
+                directus_user: ['id', 'avatar', 'first_name', 'last_name'],
             },
         ],
     },
-] as const
+] as const satisfies Query<Schema, Collections.Projects>['fields']
 
-const ProjectContext = createContext<
-    | (UseQueryResult<ApplyFields<Collections.Projects, typeof fields>> & {
-          prefetch: (projectId: number) => Promise<void>
-      })
-    | null
->(null)
+export type ProjectContextType = UseQueryResult<
+    ApplyFields<Collections.Projects, typeof fields>
+> & {
+    prefetch: (projectId: number) => Promise<void>
+}
+
+const ProjectContext = createContext<ProjectContextType | null>(null)
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
     const params = useParams()
@@ -71,6 +45,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             if (!projectId) throw new Error('No project ID')
             const data = await directus.Project.get(projectId, {
                 fields,
+                deep: {
+                    statuses: {
+                        _sort: "order",
+                    }
+                }
             })
             return data
         },
@@ -83,6 +62,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             queryFn: async () => {
                 const data = await directus.Project.get(projectId, {
                     fields,
+                    deep: {
+                        statuses: {
+                            _sort: "order",
+                        }
+                    }
                 })
                 return data
             },

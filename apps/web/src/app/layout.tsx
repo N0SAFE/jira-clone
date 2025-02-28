@@ -53,7 +53,7 @@ export default async function RootLayout({
                 <Providers>
                     <div className="bg-background flex flex-col h-screen">
                         <TopNav />
-                        <main className="flex-1 overflow-y-auto">{children}</main>
+                        <main className="flex-1 overflow-y-auto h-full">{children}</main>
                     </div>
                 </Providers>
             </body>

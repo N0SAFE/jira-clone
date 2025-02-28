@@ -6,7 +6,8 @@ import {
   KanbanSquare,
   Folder,
   Settings,
-  Users
+  Users,
+  Ticket
 } from "lucide-react"
 
 import {
@@ -17,7 +18,13 @@ import {
 } from "@repo/ui/components/shadcn/sidebar"
 import { NavMain } from "./NavMain"
 import { ProjectSwitcher } from "./ProjectSwitcher"
-import { ProjectsProjectId, ProjectsProjectIdBoard, ProjectsProjectIdSettings, ProjectsProjectIdTeam } from "@/routes"
+import { 
+  ProjectsProjectId, 
+  ProjectsProjectIdBoard, 
+  ProjectsProjectIdSettings, 
+  ProjectsProjectIdTeam,
+  ProjectsProjectIdTickets
+} from "@/routes"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams();
@@ -50,6 +57,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: isActiveSection("board"),
     },
     {
+      title: "Tickets",
+      url: ProjectsProjectIdTickets({ projectId }),
+      icon: Ticket,
+      isActive: isActiveSection("tickets"),
+    },
+    {
       title: "Team",
       url: ProjectsProjectIdTeam({ projectId }),
       icon: Users,
@@ -64,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   ];
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" {...props} className="overflow-x-hidden overflow-y-auto">
       <SidebarHeader>
         <ProjectSwitcher />
       </SidebarHeader>

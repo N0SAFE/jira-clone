@@ -12,3 +12,11 @@ export const handleError = (error: string, cause: unknown) => {
 export function toAbsoluteUrl(path: string) {
     return `${process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '')}${path}`
 }
+
+export function formatDate(date: string | Date): string {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
