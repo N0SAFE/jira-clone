@@ -16,6 +16,7 @@ export const fields = [
         user_created: ['id', 'avatar', 'first_name', 'last_name'],
         priorities: ['*'],
         statuses: ['*'],
+        types: ['*'],
         members: [
             'id',
             {

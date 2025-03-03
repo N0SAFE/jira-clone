@@ -22,45 +22,69 @@ export function useFilterManager({
   )
   
   // Create and store the FilterManager instance
-  const [filterManager] = useState(() => new FilterManager(
-    config,
-    initialState,
-    (state) => {
-      // Update table filtering
-      if (table) {
-        if (state.advancedFilter) {
-          table.setColumnFilters([]) // Clear column filters
-          table.options.meta = {
-            ...(table.options.meta || {}),
-            advancedFilter: state.advancedFilter
-          }
-        } else {
-          // Apply basic filters
-          state.filters.forEach(filter => {
-            if (filter.value && filter.value !== '__all__') {
-              table.getColumn(filter.id)?.setFilterValue(filter.value)
-            } else {
-              table.getColumn(filter.id)?.setFilterValue(undefined)
-            }
-          })
-          
-          // Clear advanced filter if exists
-          if (table.options.meta?.advancedFilter) {
+  const [filterManager] = useState(() => {
+    // Enhance the configuration to inject filterSystem into the context
+    const enhancedConfig: FilterConfiguration = {
+      ...config,
+      filters: config.filters.map(filter => ({
+        ...filter,
+        // We'll inject the filterSystem later, after it's created
+      }))
+    };
+    
+    const manager = new FilterManager(
+      enhancedConfig,
+      initialState,
+      (state) => {
+        // Update table filtering
+        if (table) {
+          if (state.advancedFilter) {
+            table.setColumnFilters([]) // Clear column filters
             table.options.meta = {
               ...(table.options.meta || {}),
-              advancedFilter: undefined
+              advancedFilter: state.advancedFilter
+            }
+          } else {
+            // Apply basic filters
+            state.filters.forEach(filter => {
+              if (filter.value && filter.value !== '__all__') {
+                table.getColumn(filter.id)?.setFilterValue(filter.value)
+              } else {
+                table.getColumn(filter.id)?.setFilterValue(undefined)
+              }
+            })
+            
+            // Clear advanced filter if exists
+            if (table.options.meta?.advancedFilter) {
+              table.options.meta = {
+                ...(table.options.meta || {}),
+                advancedFilter: undefined
+              }
             }
           }
         }
+        
+        // Call external onChange handler with the full state
+        onChange?.({
+          ...state,
+          mode,
+        })
       }
-      
-      // Call external onChange handler with the full state
-      onChange?.({
-        ...state,
-        mode,
-      })
-    }
-  ))
+    );
+    
+    // Now inject the filterSystem into each filter context
+    manager.getState().filters.forEach(filter => {
+      const filterConfig = manager.getFilterConfig(filter.id);
+      if (filterConfig) {
+        filterConfig.context = {
+          ...filterConfig.context,
+          filterSystem: manager.getFilterSystem()
+        };
+      }
+    });
+    
+    return manager;
+  })
   
   // Change mode (basic/advanced)
   const handleModeChange = useCallback((newMode: FilterMode) => {

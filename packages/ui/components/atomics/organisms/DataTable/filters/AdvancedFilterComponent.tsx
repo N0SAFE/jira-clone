@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@repo/ui/components/shadcn/select'
 import { Input } from '@repo/ui/components/shadcn/input'
-import { getFilterInputComponent } from './FilterInputs'
+import { getFilterInputComponent, getOperatorsForFilter } from './FilterInputs'
 import { 
   FilterConfiguration, 
   AdvancedFilterState, 
@@ -49,6 +49,9 @@ export function AdvancedFilterComponent({
     config.defaultLogicOperator || 'AND'
   )
   const [isActive, setIsActive] = useState(initialActive)
+  
+  // Access the filter system
+  const filterSystem = filterManager.getFilterSystem()
 
   // Effect to initialize from existing advanced filter
   useEffect(() => {
@@ -69,78 +72,50 @@ export function AdvancedFilterComponent({
     }
   }, [filterManager])
 
+  // Get the filter configuration for a specific column
   const getFilterConfig = (columnId: string) => {
-    return config.filters.find(f => f.id === columnId)
-  }
-
-  const getOperatorLabel = (operator: string): string => {
-    switch(operator) {
-      case 'contains': return 'Contains'
-      case 'equals': return 'Equals'
-      case 'startsWith': return 'Starts with'
-      case 'endsWith': return 'Ends with'
-      case 'between': return 'Between'
-      case 'in': return 'In'
-      case 'notIn': return 'Not in'
-      default: return operator
+    const filterConfig = filterManager.getFilterConfig(columnId);
+    
+    if (!filterConfig) return undefined;
+    
+    // Add filterSystem to context if not present
+    if (filterConfig && !filterConfig.context?.filterSystem) {
+      return {
+        ...filterConfig,
+        context: {
+          ...filterConfig.context,
+          filterSystem
+        }
+      };
     }
+    
+    return filterConfig;
   }
 
+  // Get operators for a column based on its filter type
   const getOperatorsForColumn = (columnId: string): Array<{value: string, label: string}> => {
     const filterConfig = getFilterConfig(columnId)
+    if (!filterConfig) return [];
     
-    // If we have defined operators in the config, use those
-    if (filterConfig?.operators?.length) {
-      return filterConfig.operators.map(op => ({
-        value: op,
-        label: getOperatorLabel(op)
-      }))
-    }
-    
-    // Otherwise provide defaults based on type
-    switch (filterConfig?.type) {
-      case 'date':
-        return [
-          { value: 'equals', label: 'Equals' },
-          { value: 'between', label: 'Between' }
-        ]
-      case 'number':
-        return [
-          { value: 'equals', label: 'Equals' },
-          { value: 'between', label: 'Between' }
-        ]
-      case 'select':
-        return [
-          { value: 'equals', label: 'Equals' }
-        ]
-      case 'multi-select':
-        return [
-          { value: 'in', label: 'In' },
-          { value: 'notIn', label: 'Not in' }
-        ]
-      default:
-        return [
-          { value: 'contains', label: 'Contains' },
-          { value: 'equals', label: 'Equals' },
-          { value: 'startsWith', label: 'Starts with' },
-          { value: 'endsWith', label: 'Ends with' }
-        ]
-    }
+    return getOperatorsForFilter(filterConfig, filterSystem);
   }
 
   const handleColumnChange = (conditionId: string, columnId: string) => {
     setConditions(conditions.map((c) => {
       if (c.id === conditionId) {
         const filterConfig = getFilterConfig(columnId)
+        if (!filterConfig) return c;
+        
         // Reset operator to default for this type
         const operators = getOperatorsForColumn(columnId)
-        const defaultOperator = operators.length > 0 ? operators[0].value : 'contains'
+        const defaultOperator = filterConfig.defaultOperator || 
+          (operators.length > 0 ? operators[0].value : 'contains')
         
         return { 
           ...c, 
           column: columnId,
           operator: defaultOperator,
-          value: '' // Reset value too
+          value: filterConfig.defaultValue ?? '' // Use default value if provided
         }
       }
       return c
@@ -148,12 +123,30 @@ export function AdvancedFilterComponent({
   }
 
   const handleOperatorChange = (conditionId: string, operator: string) => {
-    setConditions(conditions.map((c) => 
-      c.id === conditionId ? { ...c, operator } : c
-    ))
+    setConditions(conditions.map((c) => {
+      if (c.id === conditionId) {
+        // Reset value when changing operators to avoid incompatible values
+        const filterConfig = getFilterConfig(c.column)
+        
+        // Initialize appropriate value type for between operators
+        if (operator === 'between') {
+          if (filterConfig?.filterType === 'number' || filterConfig?.filterType === 'date') {
+            return { ...c, operator, value: [null, null] }
+          }
+        }
+        
+        // Special handling for isEmpty/isNotEmpty operators that don't need values
+        if (operator === 'isEmpty' || operator === 'isNotEmpty') {
+          return { ...c, operator, value: null }
+        }
+        
+        return { ...c, operator, value: '' }
+      }
+      return c
+    }))
   }
 
-  const handleValueChange = (conditionId: string, value: string) => {
+  const handleValueChange = (conditionId: string, value: any) => {
     setConditions(conditions.map((c) => 
       c.id === conditionId ? { ...c, value } : c
     ))
@@ -173,7 +166,17 @@ export function AdvancedFilterComponent({
   }
 
   const applyAdvancedFilter = () => {
-    const filteredConditions = conditions.filter(c => c.column && c.value)
+    // Filter out incomplete conditions
+    const filteredConditions = conditions.filter(c => {
+      // Always keep conditions with isEmpty/isNotEmpty operators
+      if (c.column && (c.operator === 'isEmpty' || c.operator === 'isNotEmpty')) {
+        return true;
+      }
+      
+      // Otherwise check for both column and value
+      return c.column && c.value !== undefined && c.value !== null && 
+        (typeof c.value !== 'string' || c.value.trim() !== '');
+    });
     
     if (filteredConditions.length > 0) {
       // Convert to proper FilterState array
@@ -206,17 +209,39 @@ export function AdvancedFilterComponent({
     ])
   }
 
-  // Function to render the appropriate input based on filter type
+  // Function to render the appropriate input based on filter type and operator
   const renderValueInput = (condition: FilterCondition) => {
     const filterConfig = getFilterConfig(condition.column)
     if (!filterConfig) {
       return null;
     }
-
-    // Use our component factory to get the right input component
-    const InputComponent = getFilterInputComponent(filterConfig.type)
     
-    // If we have a custom component for this filter type
+    // Don't render input for isEmpty/isNotEmpty operators
+    if (condition.operator === 'isEmpty' || condition.operator === 'isNotEmpty') {
+      return null;
+    }
+
+    // If a custom component is provided, use it
+    if (filterConfig.component) {
+      return (
+        <filterConfig.component
+          filterId={condition.id}
+          config={filterConfig}
+          value={condition.value}
+          onChange={(_, value) => handleValueChange(condition.id, value)}
+          context={filterConfig.context}
+        />
+      )
+    }
+    
+    // Use our component factory to get the right input component
+    const InputComponent = getFilterInputComponent(
+      filterConfig.filterType, 
+      condition.operator,
+      filterSystem
+    )
+    
+    // If we have a component for this filter type
     if (InputComponent) {
       return (
         <InputComponent
@@ -224,6 +249,7 @@ export function AdvancedFilterComponent({
           config={filterConfig}
           value={condition.value}
           onChange={(_, value) => handleValueChange(condition.id, value)}
+          context={filterConfig.context}
         />
       )
     }
@@ -248,7 +274,11 @@ export function AdvancedFilterComponent({
             className="h-8"
             onClick={() => setIsOpen(true)}
           >
-            Edit Advanced Filter ({conditions.filter(c => c.column && c.value).length} conditions)
+            Edit Advanced Filter ({conditions.filter(c => c.column && (
+              c.operator === 'isEmpty' || 
+              c.operator === 'isNotEmpty' || 
+              c.value
+            )).length} conditions)
           </Button>
           <Button
             variant="ghost"
@@ -292,7 +322,7 @@ export function AdvancedFilterComponent({
 
           <div className="space-y-2">
             {conditions.map((condition) => (
-              <div key={condition.id} className="flex items-center gap-2">
+              <div key={condition.id} className="flex flex-wrap items-center gap-2">
                 <Select
                   value={condition.column}
                   onValueChange={(value) => handleColumnChange(condition.id, value)}
@@ -365,7 +395,11 @@ export function AdvancedFilterComponent({
             </Button>
             <Button
               onClick={applyAdvancedFilter}
-              disabled={!conditions.some(c => c.column && c.value)}
+              disabled={!conditions.some(c => c.column && (
+                c.operator === 'isEmpty' || 
+                c.operator === 'isNotEmpty' || 
+                c.value
+              ))}
               className="h-8"
             >
               Apply

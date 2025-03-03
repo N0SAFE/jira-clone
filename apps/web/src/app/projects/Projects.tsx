@@ -95,7 +95,7 @@ export function Projects() {
 
     return (
         <div className="space-y-4 p-8 pt-6">
-            <BoardHeader>
+            <BoardHeader title="Projects" projectId={''}>
                 <h2 className="text-3xl font-bold tracking-tight">Projects</h2>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>

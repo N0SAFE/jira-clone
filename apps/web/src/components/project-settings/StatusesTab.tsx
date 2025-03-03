@@ -183,7 +183,7 @@ export function StatusesTab({ project }: StatusesTabProps) {
 
   // Update status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: Collections.TicketsStatus['id'], data: Partial<StatusFormData> }) => {
+    mutationFn: async ({ id, data }: { id: Collections.TicketsStatuses['id'], data: Partial<StatusFormData> }) => {
       return await directus.TicketsStatus.update(id, data)
     },
     onSuccess: () => {
@@ -202,7 +202,7 @@ export function StatusesTab({ project }: StatusesTabProps) {
 
   // Delete status mutation
   const deleteStatusMutation = useMutation({
-    mutationFn: async (id: Collections.TicketsStatus['id']) => {
+    mutationFn: async (id: Collections.TicketsStatuses['id']) => {
       return await directus.TicketsStatus.remove(id)
     },
     onSuccess: () => {

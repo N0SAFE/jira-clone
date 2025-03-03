@@ -60,14 +60,14 @@ collections:
       collection: projects_directus_users
       color: null
       display_template: null
-      group: null
+      group: projects
       hidden: true
       icon: import_export
       item_duplication_fields: null
       note: null
       preview_url: null
       singleton: false
-      sort: 3
+      sort: 1
       sort_field: null
       translations: null
       unarchive_value: null
@@ -91,21 +91,45 @@ collections:
       note: null
       preview_url: null
       singleton: false
-      sort: 4
+      sort: 3
       sort_field: null
       translations: null
       unarchive_value: draft
       versioning: false
     schema:
       name: tickets
-  - collection: tickets_priority
+  - collection: tickets_comments
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
       collapse: open
-      collection: tickets_priority
+      collection: tickets_comments
+      color: null
+      display_template: null
+      group: tickets
+      hidden: false
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: 4
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: tickets_comments
+  - collection: tickets_priorities
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: tickets_priorities
       color: null
       display_template: null
       group: tickets
@@ -121,15 +145,15 @@ collections:
       unarchive_value: null
       versioning: false
     schema:
-      name: tickets_priority
-  - collection: tickets_status
+      name: tickets_priorities
+  - collection: tickets_statuses
     meta:
       accountability: all
       archive_app_filter: true
       archive_field: null
       archive_value: null
       collapse: open
-      collection: tickets_status
+      collection: tickets_statuses
       color: null
       display_template: null
       group: tickets
@@ -145,7 +169,31 @@ collections:
       unarchive_value: null
       versioning: false
     schema:
-      name: tickets_status
+      name: tickets_statuses
+  - collection: tickets_types
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: tickets_types
+      color: null
+      display_template: null
+      group: tickets
+      hidden: false
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: 3
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: tickets_types
 fields:
   - collection: comments
     field: id
@@ -813,60 +861,6 @@ fields:
       validation_message: null
       width: full
   - collection: projects
-    field: statuses
-    type: alias
-    meta:
-      collection: projects
-      conditions: null
-      display: null
-      display_options: null
-      field: statuses
-      group: null
-      hidden: false
-      interface: list-o2m
-      note: null
-      options:
-        enableLink: true
-        enableSearchFilter: true
-        layout: table
-        sort: null
-      readonly: false
-      required: false
-      sort: 12
-      special:
-        - o2m
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-  - collection: projects
-    field: priorities
-    type: alias
-    meta:
-      collection: projects
-      conditions: null
-      display: null
-      display_options: null
-      field: priorities
-      group: null
-      hidden: false
-      interface: list-o2m
-      note: null
-      options:
-        enableLink: true
-        enableSearchFilter: true
-        layout: table
-        sort: null
-      readonly: false
-      required: false
-      sort: 13
-      special:
-        - o2m
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-  - collection: projects
     field: key
     type: string
     meta:
@@ -905,6 +899,112 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
+  - collection: projects
+    field: statuses
+    type: alias
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: statuses
+      group: tickets_config
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+        sort: null
+      readonly: false
+      required: false
+      sort: 1
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: projects
+    field: priorities
+    type: alias
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: priorities
+      group: tickets_config
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+        sort: null
+      readonly: false
+      required: false
+      sort: 2
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: projects
+    field: types
+    type: alias
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: types
+      group: tickets_config
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+        sort: null
+      readonly: false
+      required: false
+      sort: 3
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: projects
+    field: tickets_config
+    type: alias
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: tickets_config
+      group: null
+      hidden: false
+      interface: group-raw
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 12
+      special:
+        - alias
+        - no-data
+        - group
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
   - collection: projects_directus_users
     field: id
     type: integer
@@ -1078,7 +1178,7 @@ fields:
         template: '{{avatar}} {{first_name}} {{last_name}}'
       readonly: true
       required: false
-      sort: 3
+      sort: 2
       special:
         - user-created
       translations: null
@@ -1119,7 +1219,7 @@ fields:
       options: null
       readonly: true
       required: false
-      sort: 4
+      sort: 3
       special:
         - date-created
       translations: null
@@ -1160,7 +1260,7 @@ fields:
         template: '{{avatar}} {{first_name}} {{last_name}}'
       readonly: true
       required: false
-      sort: 5
+      sort: 4
       special:
         - user-updated
       translations: null
@@ -1201,7 +1301,7 @@ fields:
       options: null
       readonly: true
       required: false
-      sort: 6
+      sort: 5
       special:
         - date-updated
       translations: null
@@ -1241,7 +1341,7 @@ fields:
       options: null
       readonly: false
       required: true
-      sort: 7
+      sort: 6
       special: null
       translations: null
       validation: null
@@ -1280,7 +1380,7 @@ fields:
       options: null
       readonly: false
       required: false
-      sort: 8
+      sort: 7
       special: null
       translations: null
       validation: null
@@ -1320,7 +1420,7 @@ fields:
         enableLink: true
       readonly: false
       required: false
-      sort: 10
+      sort: 8
       special:
         - m2o
       translations: null
@@ -1354,14 +1454,14 @@ fields:
       display_options: null
       field: project
       group: null
-      hidden: true
+      hidden: false
       interface: select-dropdown-m2o
       note: null
       options:
         enableLink: true
       readonly: false
       required: true
-      sort: 11
+      sort: 9
       special:
         - m2o
       translations: null
@@ -1405,13 +1505,122 @@ fields:
         sort: null
       readonly: false
       required: false
-      sort: 12
+      sort: 10
       special:
         - o2m
       translations: null
       validation: null
       validation_message: null
       width: full
+  - collection: tickets
+    field: parent
+    type: integer
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: parent
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableLink: true
+      readonly: false
+      required: false
+      sort: 14
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: parent
+      table: tickets
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: tickets
+      foreign_key_column: id
+  - collection: tickets
+    field: childs
+    type: alias
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: childs
+      group: null
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+        sort: null
+      readonly: false
+      required: false
+      sort: 15
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: tickets
+    field: type
+    type: integer
+    meta:
+      collection: tickets
+      conditions: null
+      display: null
+      display_options: null
+      field: type
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableLink: true
+      readonly: false
+      required: true
+      sort: 11
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: type
+      table: tickets
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: tickets_types
+      foreign_key_column: id
   - collection: tickets
     field: status
     type: integer
@@ -1429,7 +1638,7 @@ fields:
         enableLink: true
       readonly: false
       required: true
-      sort: 13
+      sort: 12
       special:
         - m2o
       translations: null
@@ -1451,7 +1660,7 @@ fields:
       is_generated: false
       generation_expression: null
       has_auto_increment: false
-      foreign_key_table: tickets_status
+      foreign_key_table: tickets_statuses
       foreign_key_column: id
   - collection: tickets
     field: priority
@@ -1470,7 +1679,7 @@ fields:
         enableLink: true
       readonly: false
       required: true
-      sort: 14
+      sort: 13
       special:
         - m2o
       translations: null
@@ -1492,13 +1701,13 @@ fields:
       is_generated: false
       generation_expression: null
       has_auto_increment: false
-      foreign_key_table: tickets_priority
+      foreign_key_table: tickets_priorities
       foreign_key_column: id
-  - collection: tickets_priority
+  - collection: tickets_comments
     field: id
     type: integer
     meta:
-      collection: tickets_priority
+      collection: tickets_comments
       conditions: null
       display: null
       display_options: null
@@ -1518,7 +1727,7 @@ fields:
       width: full
     schema:
       name: id
-      table: tickets_priority
+      table: tickets_comments
       data_type: int unsigned
       default_value: null
       max_length: null
@@ -1533,11 +1742,11 @@ fields:
       has_auto_increment: true
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_priority
+  - collection: tickets_comments
     field: user_created
     type: string
     meta:
-      collection: tickets_priority
+      collection: tickets_comments
       conditions: null
       display: user
       display_options: null
@@ -1559,7 +1768,7 @@ fields:
       width: half
     schema:
       name: user_created
-      table: tickets_priority
+      table: tickets_comments
       data_type: char
       default_value: null
       max_length: 36
@@ -1574,11 +1783,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: directus_users
       foreign_key_column: id
-  - collection: tickets_priority
+  - collection: tickets_comments
     field: date_created
     type: timestamp
     meta:
-      collection: tickets_priority
+      collection: tickets_comments
       conditions: null
       display: datetime
       display_options:
@@ -1600,7 +1809,7 @@ fields:
       width: half
     schema:
       name: date_created
-      table: tickets_priority
+      table: tickets_comments
       data_type: timestamp
       default_value: null
       max_length: null
@@ -1615,11 +1824,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_priority
+  - collection: tickets_comments
     field: user_updated
     type: string
     meta:
-      collection: tickets_priority
+      collection: tickets_comments
       conditions: null
       display: user
       display_options: null
@@ -1641,7 +1850,7 @@ fields:
       width: half
     schema:
       name: user_updated
-      table: tickets_priority
+      table: tickets_comments
       data_type: char
       default_value: null
       max_length: 36
@@ -1656,11 +1865,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: directus_users
       foreign_key_column: id
-  - collection: tickets_priority
+  - collection: tickets_comments
     field: date_updated
     type: timestamp
     meta:
-      collection: tickets_priority
+      collection: tickets_comments
       conditions: null
       display: datetime
       display_options:
@@ -1682,7 +1891,7 @@ fields:
       width: half
     schema:
       name: date_updated
-      table: tickets_priority
+      table: tickets_comments
       data_type: timestamp
       default_value: null
       max_length: null
@@ -1697,11 +1906,292 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_priority
+  - collection: tickets_comments
+    field: content
+    type: string
+    meta:
+      collection: tickets_comments
+      conditions: null
+      display: null
+      display_options: null
+      field: content
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 6
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: content
+      table: tickets_comments
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_comments
+    field: sort
+    type: integer
+    meta:
+      collection: tickets_comments
+      conditions: null
+      display: null
+      display_options: null
+      field: sort
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: sort
+      table: tickets_comments
+      data_type: int
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_priorities
+    field: id
+    type: integer
+    meta:
+      collection: tickets_priorities
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: tickets_priorities
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_priorities
+    field: user_created
+    type: string
+    meta:
+      collection: tickets_priorities
+      conditions: null
+      display: user
+      display_options: null
+      field: user_created
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 2
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_created
+      table: tickets_priorities
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets_priorities
+    field: date_created
+    type: timestamp
+    meta:
+      collection: tickets_priorities
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 3
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: tickets_priorities
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_priorities
+    field: user_updated
+    type: string
+    meta:
+      collection: tickets_priorities
+      conditions: null
+      display: user
+      display_options: null
+      field: user_updated
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 4
+      special:
+        - user-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_updated
+      table: tickets_priorities
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets_priorities
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: tickets_priorities
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 5
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: tickets_priorities
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_priorities
     field: name
     type: string
     meta:
-      collection: tickets_priority
+      collection: tickets_priorities
       conditions: null
       display: null
       display_options: null
@@ -1721,7 +2211,7 @@ fields:
       width: full
     schema:
       name: name
-      table: tickets_priority
+      table: tickets_priorities
       data_type: varchar
       default_value: null
       max_length: 255
@@ -1736,11 +2226,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_priority
+  - collection: tickets_priorities
     field: color
     type: string
     meta:
-      collection: tickets_priority
+      collection: tickets_priorities
       conditions: null
       display: null
       display_options: null
@@ -1760,7 +2250,7 @@ fields:
       width: full
     schema:
       name: color
-      table: tickets_priority
+      table: tickets_priorities
       data_type: varchar
       default_value: null
       max_length: 255
@@ -1775,11 +2265,50 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_priority
+  - collection: tickets_priorities
+    field: level
+    type: integer
+    meta:
+      collection: tickets_priorities
+      conditions: null
+      display: null
+      display_options: null
+      field: level
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: level
+      table: tickets_priorities
+      data_type: int
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_priorities
     field: project
     type: integer
     meta:
-      collection: tickets_priority
+      collection: tickets_priorities
       conditions: null
       display: null
       display_options: null
@@ -1792,7 +2321,7 @@ fields:
         enableLink: true
       readonly: false
       required: true
-      sort: 8
+      sort: 9
       special:
         - m2o
       translations: null
@@ -1801,7 +2330,7 @@ fields:
       width: full
     schema:
       name: project
-      table: tickets_priority
+      table: tickets_priorities
       data_type: int unsigned
       default_value: null
       max_length: null
@@ -1816,11 +2345,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: projects
       foreign_key_column: id
-  - collection: tickets_priority
+  - collection: tickets_priorities
     field: tickets
     type: alias
     meta:
-      collection: tickets_priority
+      collection: tickets_priorities
       conditions: null
       display: null
       display_options: null
@@ -1836,57 +2365,18 @@ fields:
         sort: null
       readonly: false
       required: false
-      sort: 9
+      sort: 10
       special:
         - o2m
       translations: null
       validation: null
       validation_message: null
       width: full
-  - collection: tickets_priority
-    field: level
-    type: integer
-    meta:
-      collection: tickets_priority
-      conditions: null
-      display: null
-      display_options: null
-      field: level
-      group: null
-      hidden: false
-      interface: input
-      note: null
-      options: null
-      readonly: false
-      required: true
-      sort: 10
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: level
-      table: tickets_priority
-      data_type: int
-      default_value: null
-      max_length: null
-      numeric_precision: 10
-      numeric_scale: 0
-      is_nullable: false
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: id
     type: integer
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: null
       display_options: null
@@ -1906,7 +2396,7 @@ fields:
       width: full
     schema:
       name: id
-      table: tickets_status
+      table: tickets_statuses
       data_type: int unsigned
       default_value: null
       max_length: null
@@ -1921,11 +2411,11 @@ fields:
       has_auto_increment: true
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: user_created
     type: string
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: user
       display_options: null
@@ -1947,7 +2437,7 @@ fields:
       width: half
     schema:
       name: user_created
-      table: tickets_status
+      table: tickets_statuses
       data_type: char
       default_value: null
       max_length: 36
@@ -1962,11 +2452,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: directus_users
       foreign_key_column: id
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: date_created
     type: timestamp
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: datetime
       display_options:
@@ -1988,7 +2478,7 @@ fields:
       width: half
     schema:
       name: date_created
-      table: tickets_status
+      table: tickets_statuses
       data_type: timestamp
       default_value: null
       max_length: null
@@ -2003,11 +2493,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: user_updated
     type: string
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: user
       display_options: null
@@ -2029,7 +2519,7 @@ fields:
       width: half
     schema:
       name: user_updated
-      table: tickets_status
+      table: tickets_statuses
       data_type: char
       default_value: null
       max_length: 36
@@ -2044,11 +2534,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: directus_users
       foreign_key_column: id
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: date_updated
     type: timestamp
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: datetime
       display_options:
@@ -2070,7 +2560,7 @@ fields:
       width: half
     schema:
       name: date_updated
-      table: tickets_status
+      table: tickets_statuses
       data_type: timestamp
       default_value: null
       max_length: null
@@ -2085,11 +2575,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: name
     type: string
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: null
       display_options: null
@@ -2109,7 +2599,7 @@ fields:
       width: full
     schema:
       name: name
-      table: tickets_status
+      table: tickets_statuses
       data_type: varchar
       default_value: null
       max_length: 255
@@ -2124,11 +2614,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: color
     type: string
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: null
       display_options: null
@@ -2137,7 +2627,7 @@ fields:
       hidden: false
       interface: select-color
       note: null
-      options: {}
+      options: null
       readonly: false
       required: true
       sort: 7
@@ -2148,7 +2638,7 @@ fields:
       width: full
     schema:
       name: color
-      table: tickets_status
+      table: tickets_statuses
       data_type: varchar
       default_value: null
       max_length: 255
@@ -2163,11 +2653,50 @@ fields:
       has_auto_increment: false
       foreign_key_table: null
       foreign_key_column: null
-  - collection: tickets_status
+  - collection: tickets_statuses
+    field: order
+    type: integer
+    meta:
+      collection: tickets_statuses
+      conditions: null
+      display: null
+      display_options: null
+      field: order
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: order
+      table: tickets_statuses
+      data_type: int
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_statuses
     field: project
     type: integer
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: null
       display_options: null
@@ -2180,7 +2709,7 @@ fields:
         enableLink: true
       readonly: false
       required: true
-      sort: 8
+      sort: 9
       special:
         - m2o
       translations: null
@@ -2189,7 +2718,7 @@ fields:
       width: full
     schema:
       name: project
-      table: tickets_status
+      table: tickets_statuses
       data_type: int unsigned
       default_value: null
       max_length: null
@@ -2204,11 +2733,11 @@ fields:
       has_auto_increment: false
       foreign_key_table: projects
       foreign_key_column: id
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: tickets
     type: alias
     meta:
-      collection: tickets_status
+      collection: tickets_statuses
       conditions: null
       display: null
       display_options: null
@@ -2221,24 +2750,228 @@ fields:
         enableLink: true
         enableSearchFilter: true
         layout: table
+        sort: null
       readonly: false
       required: false
-      sort: 9
+      sort: 10
       special:
         - o2m
       translations: null
       validation: null
       validation_message: null
       width: full
-  - collection: tickets_status
-    field: order
+  - collection: tickets_types
+    field: id
     type: integer
     meta:
-      collection: tickets_status
+      collection: tickets_types
       conditions: null
       display: null
       display_options: null
-      field: order
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: tickets_types
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_types
+    field: user_created
+    type: string
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: user
+      display_options: null
+      field: user_created
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 2
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_created
+      table: tickets_types
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets_types
+    field: date_created
+    type: timestamp
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 3
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: tickets_types
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_types
+    field: user_updated
+    type: string
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: user
+      display_options: null
+      field: user_updated
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 4
+      special:
+        - user-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_updated
+      table: tickets_types
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: tickets_types
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 5
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: tickets_types
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_types
+    field: level
+    type: integer
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: null
+      display_options: null
+      field: level
       group: null
       hidden: false
       interface: input
@@ -2246,21 +2979,207 @@ fields:
       options: null
       readonly: false
       required: true
-      sort: 10
+      sort: 6
       special: null
       translations: null
       validation: null
       validation_message: null
       width: full
     schema:
-      name: order
-      table: tickets_status
+      name: level
+      table: tickets_types
       data_type: int
       default_value: null
       max_length: null
       numeric_precision: 10
       numeric_scale: 0
       is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_types
+    field: name
+    type: string
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: null
+      display_options: null
+      field: name
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: name
+      table: tickets_types
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_types
+    field: tickets
+    type: alias
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: null
+      display_options: null
+      field: tickets
+      group: null
+      hidden: false
+      interface: list-o2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+        sort: null
+      readonly: false
+      required: false
+      sort: 11
+      special:
+        - o2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: tickets_types
+    field: project
+    type: integer
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: null
+      display_options: null
+      field: project
+      group: null
+      hidden: false
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        enableLink: true
+      readonly: false
+      required: true
+      sort: 9
+      special:
+        - m2o
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: project
+      table: tickets_types
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: projects
+      foreign_key_column: id
+  - collection: tickets_types
+    field: icon
+    type: uuid
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: null
+      display_options: null
+      field: icon
+      group: null
+      hidden: false
+      interface: file
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 10
+      special:
+        - file
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: icon
+      table: tickets_types
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_files
+      foreign_key_column: id
+  - collection: tickets_types
+    field: description
+    type: string
+    meta:
+      collection: tickets_types
+      conditions: null
+      display: null
+      display_options: null
+      field: description
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: description
+      table: tickets_types
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
       is_unique: false
       is_indexed: false
       is_primary_key: false
@@ -2481,14 +3400,56 @@ relations:
       on_update: NO ACTION
       on_delete: NO ACTION
   - collection: tickets
+    field: parent
+    related_collection: tickets
+    meta:
+      junction_field: null
+      many_collection: tickets
+      many_field: parent
+      one_allowed_collections: null
+      one_collection: tickets
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: childs
+      sort_field: null
+    schema:
+      table: tickets
+      column: parent
+      foreign_key_table: tickets
+      foreign_key_column: id
+      constraint_name: tickets_parent_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets
+    field: type
+    related_collection: tickets_types
+    meta:
+      junction_field: null
+      many_collection: tickets
+      many_field: type
+      one_allowed_collections: null
+      one_collection: tickets_types
+      one_collection_field: null
+      one_deselect_action: delete
+      one_field: tickets
+      sort_field: null
+    schema:
+      table: tickets
+      column: type
+      foreign_key_table: tickets_types
+      foreign_key_column: id
+      constraint_name: tickets_type_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets
     field: status
-    related_collection: tickets_status
+    related_collection: tickets_statuses
     meta:
       junction_field: null
       many_collection: tickets
       many_field: status
       one_allowed_collections: null
-      one_collection: tickets_status
+      one_collection: tickets_statuses
       one_collection_field: null
       one_deselect_action: delete
       one_field: tickets
@@ -2496,20 +3457,20 @@ relations:
     schema:
       table: tickets
       column: status
-      foreign_key_table: tickets_status
+      foreign_key_table: tickets_statuses
       foreign_key_column: id
       constraint_name: tickets_status_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
   - collection: tickets
     field: priority
-    related_collection: tickets_priority
+    related_collection: tickets_priorities
     meta:
       junction_field: null
       many_collection: tickets
       many_field: priority
       one_allowed_collections: null
-      one_collection: tickets_priority
+      one_collection: tickets_priorities
       one_collection_field: null
       one_deselect_action: delete
       one_field: tickets
@@ -2517,38 +3478,17 @@ relations:
     schema:
       table: tickets
       column: priority
-      foreign_key_table: tickets_priority
+      foreign_key_table: tickets_priorities
       foreign_key_column: id
       constraint_name: tickets_priority_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
-  - collection: tickets_priority
-    field: user_created
-    related_collection: directus_users
-    meta:
-      junction_field: null
-      many_collection: tickets_priority
-      many_field: user_created
-      one_allowed_collections: null
-      one_collection: directus_users
-      one_collection_field: null
-      one_deselect_action: nullify
-      one_field: null
-      sort_field: null
-    schema:
-      table: tickets_priority
-      column: user_created
-      foreign_key_table: directus_users
-      foreign_key_column: id
-      constraint_name: tickets_priority_user_created_foreign
-      on_update: NO ACTION
-      on_delete: NO ACTION
-  - collection: tickets_priority
+  - collection: tickets_comments
     field: user_updated
     related_collection: directus_users
     meta:
       junction_field: null
-      many_collection: tickets_priority
+      many_collection: tickets_comments
       many_field: user_updated
       one_allowed_collections: null
       one_collection: directus_users
@@ -2557,19 +3497,82 @@ relations:
       one_field: null
       sort_field: null
     schema:
-      table: tickets_priority
+      table: tickets_comments
       column: user_updated
       foreign_key_table: directus_users
       foreign_key_column: id
-      constraint_name: tickets_priority_user_updated_foreign
+      constraint_name: tickets_comments_user_updated_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
-  - collection: tickets_priority
+  - collection: tickets_comments
+    field: user_created
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets_comments
+      many_field: user_created
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets_comments
+      column: user_created
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_comments_user_created_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets_priorities
+    field: user_created
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets_priorities
+      many_field: user_created
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets_priorities
+      column: user_created
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_priorities_user_created_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets_priorities
+    field: user_updated
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets_priorities
+      many_field: user_updated
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets_priorities
+      column: user_updated
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_priorities_user_updated_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets_priorities
     field: project
     related_collection: projects
     meta:
       junction_field: null
-      many_collection: tickets_priority
+      many_collection: tickets_priorities
       many_field: project
       one_allowed_collections: null
       one_collection: projects
@@ -2578,19 +3581,19 @@ relations:
       one_field: priorities
       sort_field: null
     schema:
-      table: tickets_priority
+      table: tickets_priorities
       column: project
       foreign_key_table: projects
       foreign_key_column: id
-      constraint_name: tickets_priority_project_foreign
+      constraint_name: tickets_priorities_project_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: user_created
     related_collection: directus_users
     meta:
       junction_field: null
-      many_collection: tickets_status
+      many_collection: tickets_statuses
       many_field: user_created
       one_allowed_collections: null
       one_collection: directus_users
@@ -2599,19 +3602,19 @@ relations:
       one_field: null
       sort_field: null
     schema:
-      table: tickets_status
+      table: tickets_statuses
       column: user_created
       foreign_key_table: directus_users
       foreign_key_column: id
-      constraint_name: tickets_status_user_created_foreign
+      constraint_name: tickets_statuses_user_created_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: user_updated
     related_collection: directus_users
     meta:
       junction_field: null
-      many_collection: tickets_status
+      many_collection: tickets_statuses
       many_field: user_updated
       one_allowed_collections: null
       one_collection: directus_users
@@ -2620,19 +3623,19 @@ relations:
       one_field: null
       sort_field: null
     schema:
-      table: tickets_status
+      table: tickets_statuses
       column: user_updated
       foreign_key_table: directus_users
       foreign_key_column: id
-      constraint_name: tickets_status_user_updated_foreign
+      constraint_name: tickets_statuses_user_updated_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
-  - collection: tickets_status
+  - collection: tickets_statuses
     field: project
     related_collection: projects
     meta:
       junction_field: null
-      many_collection: tickets_status
+      many_collection: tickets_statuses
       many_field: project
       one_allowed_collections: null
       one_collection: projects
@@ -2641,10 +3644,94 @@ relations:
       one_field: statuses
       sort_field: null
     schema:
-      table: tickets_status
+      table: tickets_statuses
       column: project
       foreign_key_table: projects
       foreign_key_column: id
-      constraint_name: tickets_status_project_foreign
+      constraint_name: tickets_statuses_project_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
+  - collection: tickets_types
+    field: user_created
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets_types
+      many_field: user_created
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets_types
+      column: user_created
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_types_user_created_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets_types
+    field: user_updated
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: tickets_types
+      many_field: user_updated
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets_types
+      column: user_updated
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: tickets_types_user_updated_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets_types
+    field: project
+    related_collection: projects
+    meta:
+      junction_field: null
+      many_collection: tickets_types
+      many_field: project
+      one_allowed_collections: null
+      one_collection: projects
+      one_collection_field: null
+      one_deselect_action: delete
+      one_field: types
+      sort_field: null
+    schema:
+      table: tickets_types
+      column: project
+      foreign_key_table: projects
+      foreign_key_column: id
+      constraint_name: tickets_types_project_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: tickets_types
+    field: icon
+    related_collection: directus_files
+    meta:
+      junction_field: null
+      many_collection: tickets_types
+      many_field: icon
+      one_allowed_collections: null
+      one_collection: directus_files
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: tickets_types
+      column: icon
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: tickets_types_icon_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL

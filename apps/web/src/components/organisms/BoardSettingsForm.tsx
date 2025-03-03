@@ -15,30 +15,16 @@ import { BoardSettings, boardSettingsSchema, defaultBoardSettings } from '@/lib/
 import directus from '@/lib/directus'
 
 export function BoardSettingsForm() {
-  const { data: project } = useProject()
+  const { data: project } = useProject() ?? {}
   const queryClient = useQueryClient()
-
-  const { data: settings } = useQuery({
-    queryKey: ['projects', project?.id, 'settings', 'board'],
-    queryFn: async () => {
-      const result = await directus.ProjectsSettings.readOne(project?.id!, {
-        filter: {
-          key: 'board',
-        },
-      })
-      return result?.value ? (JSON.parse(result.value) as BoardSettings) : defaultBoardSettings
-    },
-    enabled: !!project?.id,
-  })
 
   const form = useForm<BoardSettings>({
     resolver: zodResolver(boardSettingsSchema),
-    defaultValues: settings || defaultBoardSettings,
   })
 
   const updateSettings = useMutation({
     mutationFn: async (data: BoardSettings) => {
-      return directus.ProjectsSettings.createOne({
+      return directus.ProjectsSetting.create({
         project: project?.id!,
         key: 'board',
         value: JSON.stringify(data),

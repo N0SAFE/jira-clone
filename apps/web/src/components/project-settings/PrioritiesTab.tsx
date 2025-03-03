@@ -184,7 +184,7 @@ export function PrioritiesTab({ project }: PrioritiesTabProps) {
 
   // Update priority mutation
   const updatePriorityMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: Collections.TicketsPriority['id'], data: Partial<PriorityFormData> }) => {
+    mutationFn: async ({ id, data }: { id: Collections.TicketsPriorities['id'], data: Partial<PriorityFormData> }) => {
       return await directus.TicketsPriority.update(id, data)
     },
     onSuccess: () => {
@@ -203,7 +203,7 @@ export function PrioritiesTab({ project }: PrioritiesTabProps) {
 
   // Delete priority mutation
   const deletePriorityMutation = useMutation({
-    mutationFn: async (id: Collections.TicketsPriority['id']) => {
+    mutationFn: async (id: Collections.TicketsPriorities['id']) => {
       return await directus.TicketsPriority.remove(id)
     },
     onSuccess: () => {

@@ -41,7 +41,7 @@ import { Board } from '@/components/organisms/Board'
 
 type BoardTicket = {
     id: number
-    status: Collections.TicketsStatus['id']
+    status: Collections.TicketsStatuses['id']
     title: string
     priority: Collections.Tickets['priority']
     description?: string
@@ -56,16 +56,24 @@ export default function BoardPage() {
         title: z.string().min(1, 'Title is required'),
         description: z.string().optional(),
         // priorityShouldBeANumber from the project?.priorities list
-        priority: z.number().refine(
+        priority: z.string().refine(
             (val) => {
                 return project?.priorities?.some(
-                    (priority) => priority.id === val
+                    (priority) => priority.id === Number(val)
                 )
             },
             {
                 message: 'Priority is required',
             }
-        ),
+        ).pipe(z.coerce.number()),
+        type: z.string().refine(
+            (val) => {
+                return project?.types?.some((type) => type.id === Number(val))
+            },
+            {
+                message: 'Type is required',
+            }
+        ).pipe(z.coerce.number()),
     })
 
     type CreateTicketForm = z.infer<typeof createTicketSchema>
@@ -83,7 +91,7 @@ export default function BoardPage() {
             status,
         }: {
             id: Collections.Tickets['id']
-            status: Collections.TicketsStatus['id']
+            status: Collections.TicketsStatuses['id']
         }) => {
             return directus.Ticket.update(id, { status })
         },
@@ -161,6 +169,7 @@ export default function BoardPage() {
                     priority: data.priority,
                     project: project?.id,
                     status: project?.statuses?.[0]?.id,
+                    type: data.type,
                 },
             ])
         },
@@ -280,6 +289,43 @@ export default function BoardPage() {
                                                                     .charAt(0)
                                                                     .toUpperCase() +
                                                                     priority.name.slice(
+                                                                        1
+                                                                    )}
+                                                            </SelectItem>
+                                                        )
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="type"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Type</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={`${field.value}`}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select type" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {project?.types?.map(
+                                                        (type) => (
+                                                            <SelectItem
+                                                                key={type.id}
+                                                                value={`${type.id}`}
+                                                            >
+                                                                {type.name
+                                                                    .charAt(0)
+                                                                    .toUpperCase() +
+                                                                    type.name.slice(
                                                                         1
                                                                     )}
                                                             </SelectItem>

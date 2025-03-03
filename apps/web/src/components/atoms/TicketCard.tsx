@@ -9,6 +9,7 @@ import { useDraggable } from "@dnd-kit/core"
 import { cn } from "@repo/ui/lib/utils"
 import type { CSSProperties } from 'react'
 import { useParams } from 'next/navigation'
+import { ProjectsProjectIdTicketsTicketId } from '@/routes/index'
 
 interface TicketCardProps {
   ticket: ApplyFields<Collections.Tickets, ['title', 'id', {
@@ -35,7 +36,7 @@ export function TicketCard({ ticket }: TicketCardProps) {
 
   const handleClick = () => {
     if (!isDragging) {
-      router.push(`/projects/${projectId}/tickets/${ticket.id}`)
+      ProjectsProjectIdTicketsTicketId.immediate(router, { projectId: Number(projectId), ticketId: ticket.id })
     }
   }
 

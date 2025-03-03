@@ -33,7 +33,6 @@ import { Input } from '@repo/ui/components/shadcn/input'
 import { Label } from '@repo/ui/components/shadcn/label'
 import { Skeleton } from '@repo/ui/components/shadcn/skeleton'
 import Link from 'next/link'
-import { useProjectsQuery } from '@/query&mutation/project'
 import { useSession } from 'next-auth/react'
 import { ProjectsProjectId } from '@/routes'
 import { Collections, CollectionsType, Schema } from '@repo/directus-sdk/client'
@@ -59,7 +58,7 @@ export function ProjectSwitcher({
         React.useState(false)
 
     const { setLoading } = useProjectLoading()
-    const { prefetch } = useProject()
+    const { prefetch } = useProject() ?? {}
 
     // Find the current project based on the URL
     const currentProjectId = Number((params?.projectId as string) || '1')
@@ -117,7 +116,7 @@ export function ProjectSwitcher({
             return response
         },
         onSuccess: async (data) => {
-            await prefetch(data.id)
+            await prefetch?.(data.id)
             setShowNewProjectDialog(false)
             setLoading(true)
             ProjectsProjectId.immediate(router, { projectId: data.id })
@@ -183,7 +182,7 @@ export function ProjectSwitcher({
         setSelectedProject(project)
         setOpen(false)
 
-        prefetch(project.id)
+        prefetch?.(project.id)
         setLoading(true)
 
         // Navigate to the selected project
@@ -214,7 +213,7 @@ export function ProjectSwitcher({
                             </div>
                         ) : selectedProject ? (
                             <div className="flex items-center gap-2 truncate">
-                                {selectedProject.logo && (
+                                {/* {selectedProject.logo && (
                                     <selectedProject.logo className="h-4 w-4 shrink-0" />
                                 )}
                                 <span className="truncate">
@@ -224,7 +223,7 @@ export function ProjectSwitcher({
                                     <span className="text-muted-foreground ml-auto text-xs">
                                         {selectedProject.plan}
                                     </span>
-                                )}
+                                )} */}
                             </div>
                         ) : (
                             <span>Select project</span>
@@ -263,7 +262,7 @@ export function ProjectSwitcher({
                                                 className="text-sm"
                                             >
                                                 <div className="flex items-center gap-2 truncate">
-                                                    {project.logo && (
+                                                    {/* {project.logo && (
                                                         <project.logo className="h-4 w-4 shrink-0" />
                                                     )}
                                                     <span className="truncate">
@@ -273,7 +272,7 @@ export function ProjectSwitcher({
                                                         <span className="text-muted-foreground ml-auto text-xs">
                                                             {project.plan}
                                                         </span>
-                                                    )}
+                                                    )} */}
                                                 </div>
                                                 <Check
                                                     className={cn(

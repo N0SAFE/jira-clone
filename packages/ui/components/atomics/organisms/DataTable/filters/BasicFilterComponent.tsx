@@ -11,7 +11,7 @@ import {
   PopoverTrigger,
 } from '@repo/ui/components/shadcn/popover'
 
-import { getFilterInputComponent } from './FilterInputs'
+import { getFilterInputComponent, getOperatorsForFilter } from './FilterInputs'
 import { FilterConfiguration, FilterState } from './types'
 import { FilterManager } from './FilterManager'
 
@@ -75,7 +75,8 @@ export function BasicFilterComponent({
       
       // Set initial value in local state
       const filterConfig = config.filters.find(f => f.id === filterId)
-      const initialValue = filterConfig?.type === 'select' ? '__all__' : ''
+      const initialValue = filterConfig?.defaultValue ?? 
+        (filterConfig?.type === 'select' ? '__all__' : '')
       
       setFilterValues(prev => ({
         ...prev,
@@ -105,6 +106,37 @@ export function BasicFilterComponent({
     setFilterValues({})
   }
 
+  // Render the appropriate filter input component
+  const renderFilterInput = (filterId: string) => {
+    const filterConfig = filterManager.getFilterConfig(filterId)
+    if (!filterConfig) return null
+    
+    // If filter has a custom component defined, use it
+    if (filterConfig.component) {
+      return (
+        <filterConfig.component
+          filterId={filterId}
+          config={filterConfig}
+          value={filterValues[filterId]}
+          onChange={handleFilterChange}
+          context={filterConfig.context}
+        />
+      )
+    }
+    
+    // Otherwise use our component factory to get the appropriate input
+    const InputComponent = getFilterInputComponent(filterConfig.type)
+    return (
+      <InputComponent
+        filterId={filterId}
+        config={filterConfig}
+        value={filterValues[filterId]}
+        onChange={handleFilterChange}
+        context={filterConfig.context}
+      />
+    )
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2 flex-wrap">
@@ -120,19 +152,8 @@ export function BasicFilterComponent({
               className="flex items-center gap-2 bg-secondary p-2 pr-3 rounded-md"
             >
               <span className="text-sm font-medium">{filterConfig.label}:</span>
-
-              {/* Render the appropriate input component based on filter type */}
-              {(() => {
-                const InputComponent = getFilterInputComponent(filterConfig.type)
-                return (
-                  <InputComponent
-                    filterId={filterId}
-                    config={filterConfig}
-                    value={filterValues[filterId]}
-                    onChange={handleFilterChange}
-                  />
-                )
-              })()}
+              
+              {renderFilterInput(filterId)}
               
               <Button
                 variant="ghost"

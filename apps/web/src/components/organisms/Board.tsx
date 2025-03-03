@@ -10,7 +10,7 @@ interface BoardProps {
     status: ['color', 'name', 'id'],
   }]>[]
   onDragEnd: (event: DragEndEvent) => void
-  statuses: ApplyFields<Collections.TicketsStatus>[]
+  statuses: ApplyFields<Collections.TicketsStatuses>[]
 }
 
 export function Board({ tickets, onDragEnd, statuses }: BoardProps) {
@@ -48,4 +48,4 @@ export function Board({ tickets, onDragEnd, statuses }: BoardProps) {
       </div>
     </DndContext>
   )
-}
+} 
