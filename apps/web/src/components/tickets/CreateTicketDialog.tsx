@@ -38,6 +38,17 @@ import {
 import { Collections } from '@repo/directus-sdk/client'
 import { ApplyFields } from '@repo/directus-sdk/utils'
 
+// Define icons for ticket types
+const typeIcons: Record<string, JSX.Element> = {
+  'bug': <Bug className="h-4 w-4" />,
+  'task': <CheckCircle className="h-4 w-4" />,
+  'epic': <Bookmark className="h-4 w-4" />,
+  'goal': <Target className="h-4 w-4" />,
+  'issue': <AlertTriangle className="h-4 w-4" />,
+  'story': <FileSpreadsheet className="h-4 w-4" />,
+  'feature': <LayoutGrid className="h-4 w-4" />,
+};
+
 // Define schema for form validation
 const ticketFormSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
@@ -45,8 +56,8 @@ const ticketFormSchema = z.object({
   status: z.number().optional(),
   priority: z.number().optional(),
   assignee: z.number().optional().nullable(),
-  ticket_type: z.number().optional(),
-  parent_ticket: z.number().optional().nullable()
+  type: z.number().optional(),
+  parent: z.number().optional().nullable()
 });
 
 type TicketFormValues = z.infer<typeof ticketFormSchema>;
@@ -75,8 +86,8 @@ export default function CreateTicketDialog({
       status: undefined,
       priority: undefined,
       assignee: null,
-      ticket_type: undefined,
-      parent_ticket: parentTicket || null
+      type: undefined,
+      parent: parentTicket || null
     },
   });
 
@@ -274,7 +285,7 @@ export default function CreateTicketDialog({
             {/* Ticket Type Selector */}
             <FormField
               control={form.control}
-              name="ticket_type"
+              name="type"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ticket Type</FormLabel>
@@ -295,7 +306,7 @@ export default function CreateTicketDialog({
                         onValueChange={(value) => {
                           field.onChange(Number(value));
                           // Reset parent ticket when type changes
-                          form.setValue("parent_ticket", null);
+                          form.setValue("parent", null);
                         }}
                       >
                         <SelectTrigger>
@@ -328,20 +339,20 @@ export default function CreateTicketDialog({
             {selectedTypeId && canHaveParent(selectedTypeId) && (
               <FormField
                 control={form.control}
-                name="parent_ticket"
+                name="parent"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Parent Ticket</FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value?.toString() || ""}
+                        value={field.value?.toString() || undefined}
                         onValueChange={(value) => field.onChange(value ? Number(value) : null)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="No parent (standalone ticket)" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No parent (standalone ticket)</SelectItem>
+                          <SelectItem value="none">No parent (standalone ticket)</SelectItem>
                           {potentialParentTickets.map((parentTicket: any) => (
                             <SelectItem key={parentTicket.id} value={parentTicket.id.toString()}>
                               {parentTicket.title}
@@ -411,7 +422,7 @@ export default function CreateTicketDialog({
                         </div>
                       ) : (
                         <Select
-                          value={field.value?.toString() || ""}
+                          value={field.value?.toString() || undefined}
                           onValueChange={(value) => field.onChange(Number(value))}
                         >
                           <SelectTrigger>
@@ -457,7 +468,7 @@ export default function CreateTicketDialog({
                         </div>
                       ) : (
                         <Select
-                          value={field.value?.toString() || ""}
+                          value={field.value?.toString() || undefined}
                           onValueChange={(value) => field.onChange(Number(value))}
                         >
                           <SelectTrigger>
@@ -494,14 +505,14 @@ export default function CreateTicketDialog({
                   <FormLabel>Assignee</FormLabel>
                   <FormControl>
                     <Select
-                      value={field.value?.toString() || ""}
+                      value={field.value?.toString() || undefined}
                       onValueChange={(value) => field.onChange(value ? Number(value) : null)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Unassigned" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Unassigned</SelectItem>
+                        <SelectItem value="none">Unassigned</SelectItem>
                         {teamMembers.map((member: any) => (
                           <SelectItem key={member.id} value={member.id.toString()}>
                             {member.first_name} {member.last_name || ''} ({member.email})

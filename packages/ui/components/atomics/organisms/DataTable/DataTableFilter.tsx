@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { useDataTableContext } from './DataTableContext'
 import { 
   FilterConfiguration, 
@@ -19,6 +19,11 @@ interface DataTableFilterProps {
   onFilterChange?: (state: FilterManagerState) => void
 }
 
+const defaultFilterState: FilterManagerState = {
+  filters: [],
+  mode: 'basic'
+}
+
 export function DataTableFilter({ 
   config,
   initialState,
@@ -31,7 +36,7 @@ export function DataTableFilter({
     filterManager,
   } = useFilterManager({
     config,
-    initialState,
+    state: initialState || defaultFilterState,
     onChange: onFilterChange
   })
 
@@ -57,13 +62,14 @@ export function DataTableFilter({
       {mode === 'basic' ? (
         <BasicFilterComponent 
           config={config} 
-          filterManager={filterManager} 
+          filterManager={filterManager}
+          state={filterManager.getState()}
         />
       ) : (
-        <AdvancedFilterComponent 
+        <AdvancedFilterComponent
           config={config}
-          filterManager={filterManager}
-          initialActive={!!initialState?.advancedFilter}
+          filterManager={filterManager} 
+          state={filterManager.getState()}
         />
       )}
     </div>

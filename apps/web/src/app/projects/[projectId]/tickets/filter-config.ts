@@ -184,7 +184,7 @@ export const ticketFilterConfig: FilterConfiguration = {
       defaultOperator: OPERATORS.CONTAINS
     },
     {
-      id: 'ticket_type',
+      id: 'type',
       label: 'Type',
       filterType: FILTER_TYPES.SELECT,
       options: typeOptions
@@ -215,38 +215,6 @@ export const ticketFilterConfig: FilterConfiguration = {
       placeholder: 'Filter by assignee...'
     },
     {
-      id: 'reporter',
-      label: 'Reporter',
-      filterType: 'user',
-      placeholder: 'Filter by reporter...'
-    },
-    {
-      id: 'watchers',
-      label: 'Watchers',
-      filterType: 'watchers'
-    },
-    {
-      id: 'sprint',
-      label: 'Sprint',
-      filterType: FILTER_TYPES.SELECT,
-      options: [], // Populated dynamically in the component
-      placeholder: 'Filter by sprint'
-    },
-    {
-      id: 'epic',
-      label: 'Epic',
-      filterType: FILTER_TYPES.SELECT,
-      options: [], // Populated dynamically in the component
-      placeholder: 'Filter by epic'
-    },
-    {
-      id: 'labels',
-      label: 'Labels',
-      filterType: FILTER_TYPES.MULTI_SELECT,
-      options: [], // Populated dynamically in the component
-      placeholder: 'Filter by labels'
-    },
-    {
       id: 'created_at',
       label: 'Created',
       filterType: FILTER_TYPES.DATE,
@@ -272,41 +240,10 @@ export const ticketFilterConfig: FilterConfiguration = {
       defaultOperator: 'lastUpdatedRecently'
     },
     {
-      id: 'due_date',
-      label: 'Due Date',
-      filterType: FILTER_TYPES.DATE,
-      availableOperators: [
-        OPERATORS.EQUALS,
-        OPERATORS.GREATER_THAN,
-        OPERATORS.LESS_THAN,
-        'dueSoon',
-        'overdue',
-        OPERATORS.BETWEEN,
-        OPERATORS.IS_EMPTY
-      ]
-    },
-    {
-      id: 'story_points',
-      label: 'Story Points',
-      filterType: FILTER_TYPES.NUMBER,
-      availableOperators: [
-        OPERATORS.EQUALS,
-        OPERATORS.GREATER_THAN,
-        OPERATORS.LESS_THAN,
-        OPERATORS.BETWEEN,
-        OPERATORS.IS_EMPTY
-      ]
-    },
-    {
       id: 'comments',
       label: 'Has Comments',
       filterType: FILTER_TYPES.BOOLEAN
     },
-    {
-      id: 'attachments',
-      label: 'Has Attachments',
-      filterType: FILTER_TYPES.BOOLEAN
-    }
   ],
   
   // General settings

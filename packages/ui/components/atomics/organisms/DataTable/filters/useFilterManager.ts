@@ -1,131 +1,107 @@
-import { useState, useEffect, useCallback } from 'react'
-import { FilterConfiguration, FilterManagerState, FilterMode } from './types'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { FilterConfiguration, FilterManagerState, FilterMode, FilterState } from './types'
 import { FilterManager } from './FilterManager'
 import { useDataTableContext } from '../DataTableContext'
 
 interface UseFilterManagerOptions {
   config: FilterConfiguration
-  initialState?: FilterManagerState
+  state: FilterManagerState
   onChange?: (state: FilterManagerState) => void
 }
 
 export function useFilterManager({ 
   config, 
-  initialState,
+  state,
   onChange
 }: UseFilterManagerOptions) {
   const { table } = useDataTableContext('useFilterManager must be used inside a DataTableProvider')
   
   // Keep track of the filter mode (basic/advanced)
   const [mode, setMode] = useState<FilterMode>(
-    initialState?.mode || config.defaultMode || 'basic'
+    state?.mode || config.defaultMode || 'basic'
   )
+
+  // Use ref to track state updates
+  const stateRef = useRef(state)
+  const filterManagerRef = useRef<FilterManager | null>(null)
   
-  // Create and store the FilterManager instance
-  const [filterManager] = useState(() => {
-    // Enhance the configuration to inject filterSystem into the context
-    const enhancedConfig: FilterConfiguration = {
-      ...config,
-      filters: config.filters.map(filter => ({
-        ...filter,
-        // We'll inject the filterSystem later, after it's created
-      }))
-    };
-    
-    const manager = new FilterManager(
-      enhancedConfig,
-      initialState,
-      (state) => {
-        // Update table filtering
-        if (table) {
-          if (state.advancedFilter) {
-            table.setColumnFilters([]) // Clear column filters
-            table.options.meta = {
-              ...(table.options.meta || {}),
-              advancedFilter: state.advancedFilter
-            }
-          } else {
-            // Apply basic filters
-            state.filters.forEach(filter => {
-              if (filter.value && filter.value !== '__all__') {
-                table.getColumn(filter.id)?.setFilterValue(filter.value)
-              } else {
-                table.getColumn(filter.id)?.setFilterValue(undefined)
-              }
-            })
-            
-            // Clear advanced filter if exists
-            if (table.options.meta?.advancedFilter) {
+  // Create filter manager instance only once
+  if (!filterManagerRef.current) {
+    filterManagerRef.current = new FilterManager(
+      config,
+      state,
+      (newState) => {
+        // Skip if the state hasn't changed meaningfully
+        if (JSON.stringify(stateRef.current) === JSON.stringify(newState)) {
+          return
+        }
+
+        // Schedule state updates in a microtask to avoid updates during render
+        Promise.resolve().then(() => {
+          // Update table filtering
+          if (table) {
+            if (newState.advancedFilter) {
+              table.setColumnFilters([]) // Clear column filters
               table.options.meta = {
                 ...(table.options.meta || {}),
-                advancedFilter: undefined
+                advancedFilter: newState.advancedFilter
+              }
+            } else {
+              // Apply basic filters
+              newState.filters?.forEach((filter: FilterState) => {
+                if (filter.value && filter.value !== '__all__') {
+                  table.getColumn(filter.id)?.setFilterValue(filter.value)
+                } else {
+                  table.getColumn(filter.id)?.setFilterValue(undefined)
+                }
+              })
+              
+              // Clear advanced filter if exists
+              if (table.options.meta?.advancedFilter) {
+                table.options.meta = {
+                  ...(table.options.meta || {}),
+                  advancedFilter: undefined
+                }
               }
             }
           }
-        }
-        
-        // Call external onChange handler with the full state
-        onChange?.({
-          ...state,
-          mode,
+
+          // Update ref and notify parent
+          stateRef.current = newState
+          onChange?.(newState)
         })
       }
-    );
-    
-    // Now inject the filterSystem into each filter context
-    manager.getState().filters.forEach(filter => {
-      const filterConfig = manager.getFilterConfig(filter.id);
-      if (filterConfig) {
-        filterConfig.context = {
-          ...filterConfig.context,
-          filterSystem: manager.getFilterSystem()
-        };
-      }
-    });
-    
-    return manager;
-  })
-  
+    )
+  }
+
   // Change mode (basic/advanced)
   const handleModeChange = useCallback((newMode: FilterMode) => {
     // Clear filters when switching modes
-    filterManager.clearAllFilters()
+    filterManagerRef.current?.reset()
     setMode(newMode)
-  }, [filterManager])
-  
-  // Update filter manager when initialState changes
+  }, [])
+
+  // Update filter manager when external state changes
   useEffect(() => {
-    if (initialState) {
-      // Set mode
-      if (initialState.mode) {
-        setMode(initialState.mode)
-      }
-      
-      // Apply filters from initialState
-      if (initialState.mode === 'advanced' && initialState.advancedFilter) {
-        filterManager.setAdvancedFilter(initialState.advancedFilter)
-      } else if (initialState.filters) {
-        // Apply each basic filter
-        initialState.filters.forEach(filter => {
-          if (filter.value && filter.value !== '__all__') {
-            filterManager.setFilter(filter.id, filter.value)
-            
-            if (filter.operator) {
-              filterManager.setFilterOperator(filter.id, filter.operator)
-            }
-          }
-        })
-      }
+    if (!state || JSON.stringify(stateRef.current) === JSON.stringify(state)) {
+      return
     }
-  }, [initialState, filterManager])
-  
+
+    // Update ref
+    stateRef.current = state
+
+    // Apply mode
+    if (state.mode) {
+      setMode(state.mode)
+    }
+
+    // Apply state to filter manager using the renamed method
+    filterManagerRef.current?.setFilterState(state)
+  }, [state])
+
   return {
     mode,
     setMode: handleModeChange,
-    filterManager,
-    getState: () => ({
-      ...filterManager.getState(),
-      mode
-    })
+    filterManager: filterManagerRef.current as FilterManager
   }
 }

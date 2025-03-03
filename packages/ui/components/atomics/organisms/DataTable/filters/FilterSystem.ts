@@ -5,7 +5,8 @@ import {
   FilterTypeDefinition,
   FilterOperator,
   OPERATORS,
-  FILTER_TYPES
+  FILTER_TYPES,
+  FilterSystem as IFilterSystem
 } from './types';
 import { DEFAULT_FILTER_SYSTEM_CONFIG } from './defaultFilterConfig';
 
@@ -13,12 +14,25 @@ import { DEFAULT_FILTER_SYSTEM_CONFIG } from './defaultFilterConfig';
  * FilterSystem is the central class that manages operator definitions and filter types.
  * It provides methods to evaluate filter conditions and retrieve configuration details.
  */
-export class FilterSystem {
+export class FilterSystem implements IFilterSystem {
   private config: FilterSystemConfig;
+  private operators: Record<string, OperatorDefinition>;
+  private filterTypes: Record<string, FilterTypeDefinition>;
 
   constructor(config?: Partial<FilterSystemConfig>) {
     // Start with default configuration
     this.config = { ...DEFAULT_FILTER_SYSTEM_CONFIG };
+
+    // Initialize with defaults and override with provided config
+    this.operators = {
+      ...DEFAULT_FILTER_SYSTEM_CONFIG.operators,
+      ...(config?.operators || {})
+    };
+    
+    this.filterTypes = {
+      ...DEFAULT_FILTER_SYSTEM_CONFIG.filterTypes,
+      ...(config?.filterTypes || {})
+    };
 
     if (config) {
       // Merge custom operators
@@ -42,29 +56,29 @@ export class FilterSystem {
   /**
    * Get all available operators
    */
-  getOperators(): Record<string, OperatorDefinition> {
-    return this.config.operators;
+  getOperators(): OperatorDefinition[] {
+    return Object.values(this.operators);
   }
 
   /**
    * Get a specific operator definition by ID
    */
   getOperator(operatorId: string): OperatorDefinition | undefined {
-    return this.config.operators[operatorId];
+    return this.operators[operatorId];
   }
 
   /**
    * Get all available filter types
    */
-  getFilterTypes(): Record<string, FilterTypeDefinition> {
-    return this.config.filterTypes;
+  getFilterTypes(): FilterTypeDefinition[] {
+    return Object.values(this.filterTypes);
   }
 
   /**
    * Get a specific filter type definition by ID
    */
   getFilterType(typeId: string): FilterTypeDefinition | undefined {
-    return this.config.filterTypes[typeId];
+    return this.filterTypes[typeId];
   }
 
   /**

@@ -1,52 +1,111 @@
-import { v4 as uuidv4 } from 'uuid';
-import { 
-  FilterCondition, 
-  FilterGroup, 
-  LogicOperator, 
-  FilterConfiguration, 
+import type { OperatorDefinition } from './types';
+import {
+  FilterCondition,
+  FilterGroup,
+  LogicOperator,
+  FilterConfiguration,
   FilterOperator,
   LOGIC_OPERATORS,
   OperatorConfig,
-  FilterConfig
+  FilterConfig,
+  FilterSystem as IFilterSystem,
+  AdvancedFilterState,
+  FilterState,
+  FilterManagerState
 } from './types';
 import { OperatorManager } from './OperatorManager';
 import { DEFAULT_FILTER_SYSTEM_CONFIG } from './defaultFilterConfig';
+import { FilterSystem } from './FilterSystem';
+
+// Simple ID generator
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 export class FilterManager {
   private config: FilterConfiguration;
-  private rootGroup: FilterGroup;
+  private rootGroup: FilterGroup = this.createEmptyGroup('AND');
   private operatorManager: OperatorManager;
+  private filterSystem: FilterSystem;
+  private advancedFilter?: AdvancedFilterState;
+  private basicFilters: FilterState[] = [];
+  private onStateChange?: (state: FilterManagerState) => void;
+  private previousState?: FilterManagerState;
 
-  constructor(config: FilterConfiguration, initialValue?: FilterGroup) {
+  constructor(
+    config: FilterConfiguration,
+    state?: FilterManagerState,
+    onStateChange?: (state: FilterManagerState) => void
+  ) {
     this.config = config;
-
-    // Initialize operator manager
-    const operatorConfig: OperatorConfig | undefined = 
-      this.config.operatorConfig || 
-      (this.config.systemConfig ? { operators: this.config.systemConfig.operators } : undefined);
+    this.onStateChange = onStateChange;
+    
+    // Initialize operator manager with correct types
+    const operatorConfig = this.config.operatorConfig || 
+      (this.config.systemConfig ? {
+        operators: Object.entries(this.config.systemConfig.operators).reduce((acc, [key, op]) => ({
+          ...acc,
+          [key]: { ...op, value: op.id }
+        }), {})
+      } : undefined);
     
     this.operatorManager = new OperatorManager(operatorConfig);
-
-    // Initialize filter state
-    if (initialValue) {
-      this.rootGroup = this.validateGroup(initialValue);
-    } else {
-      this.rootGroup = this.createEmptyGroup(this.config.defaultLogicOperator || 'AND');
-    }
+    this.filterSystem = new FilterSystem(this.config.systemConfig);
+    
+    // Initialize state
+    const initialState = state || {
+      filters: [],
+      advancedFilter: undefined,
+      rootGroup: this.createEmptyGroup(this.config.defaultLogicOperator || 'AND')
+    };
+    
+    this.setFilterState(initialState);
+    this.previousState = this.getState();
   }
 
   /**
    * Get the current filter state
    */
-  getState(): FilterGroup {
-    return this.rootGroup;
+  getState(): FilterManagerState {
+    return {
+      rootGroup: this.rootGroup,
+      filters: this.basicFilters,
+      advancedFilter: this.advancedFilter,
+    };
   }
 
   /**
-   * Set the filter state
+   * Set the complete filter state
    */
-  setState(group: FilterGroup): void {
-    this.rootGroup = this.validateGroup(group);
+  setFilterState(state: FilterManagerState): void {
+    if (state.advancedFilter) {
+      this.advancedFilter = state.advancedFilter;
+      this.basicFilters = []; // Clear basic filters when setting advanced filter
+    } else if (state.filters) {
+      this.basicFilters = state.filters;
+      this.advancedFilter = undefined; // Clear advanced filter when setting basic filters
+    }
+
+    // Set root group if provided
+    if (state.rootGroup) {
+      this.rootGroup = this.validateGroup(state.rootGroup);
+    } else {
+      this.rootGroup = this.createEmptyGroup(this.config.defaultLogicOperator || 'AND');
+    }
+
+    this._notifyStateChange();
+  }
+
+  /**
+   * Get the filter system configuration
+   */
+  getFilterSystem(): FilterSystem {
+    return this.filterSystem;
+  }
+
+  /**
+   * Get filter config by ID
+   */
+  getFilterConfig(filterId: string): FilterConfig | undefined {
+    return this.config.filters.find(filter => filter.id === filterId);
   }
 
   /**
@@ -54,12 +113,95 @@ export class FilterManager {
    */
   createEmptyGroup(logicOperator: LogicOperator = 'AND'): FilterGroup {
     return {
-      id: uuidv4(),
+      id: generateId(),
       logicOperator,
       conditions: [],
       groups: [],
       active: true
     };
+  }
+
+  /**
+   * Set advanced filter
+   */
+  setAdvancedFilter(filter: AdvancedFilterState): void {
+    const shouldUpdate = !this.advancedFilter || 
+      JSON.stringify(this.advancedFilter) !== JSON.stringify(filter);
+    
+    if (shouldUpdate) {
+      this.advancedFilter = filter;
+      this.basicFilters = []; // Clear basic filters when setting advanced filter
+      this._notifyStateChange();
+    }
+  }
+  
+  /**
+   * Clear advanced filter
+   */
+  clearAdvancedFilter(): void {
+    this.advancedFilter = undefined;
+    this._notifyStateChange();
+  }
+  
+  /**
+   * Set a basic filter
+   */
+  setFilter(filterId: string, value: any): void {
+    // Find existing filter
+    const existingFilterIndex = this.basicFilters.findIndex(f => f.id === filterId);
+    
+    if (existingFilterIndex >= 0) {
+      // Skip update if value hasn't changed
+      if (JSON.stringify(this.basicFilters[existingFilterIndex].value) === JSON.stringify(value)) {
+        return;
+      }
+      
+      // Update existing filter
+      const updatedFilters = [...this.basicFilters];
+      updatedFilters[existingFilterIndex] = {
+        ...updatedFilters[existingFilterIndex],
+        value
+      };
+      this.basicFilters = updatedFilters;
+    } else {
+      // Add new filter
+      const filterConfig = this.getFilterConfig(filterId);
+      const defaultOperator = filterConfig?.defaultOperator || 'equals';
+      
+      this.basicFilters = [
+        ...this.basicFilters,
+        {
+          id: filterId,
+          value,
+          operator: defaultOperator
+        }
+      ];
+    }
+    
+    // Clear advanced filter when setting basic filters
+    this.advancedFilter = undefined;
+    
+    this._notifyStateChange();
+  }
+  
+  /**
+   * Set a filter operator
+   */
+  setFilterOperator(filterId: string, operator: string): void {
+    // Find existing filter
+    const existingFilterIndex = this.basicFilters.findIndex(f => f.id === filterId);
+    
+    if (existingFilterIndex >= 0) {
+      // Update existing filter
+      const updatedFilters = [...this.basicFilters];
+      updatedFilters[existingFilterIndex] = {
+        ...updatedFilters[existingFilterIndex],
+        operator
+      };
+      this.basicFilters = updatedFilters;
+      
+      this._notifyStateChange();
+    }
   }
 
   /**
@@ -79,7 +221,7 @@ export class FilterManager {
 
     // Create the condition
     const condition: FilterCondition = {
-      id: uuidv4(),
+      id: generateId(),
       field,
       operator: defaultOperator,
       value: defaultValue,
@@ -94,6 +236,7 @@ export class FilterManager {
 
     if (updatedRoot) {
       this.rootGroup = updatedRoot;
+      this._notifyStateChange();
       return condition;
     }
 
@@ -314,6 +457,27 @@ export class FilterManager {
    */
   reset(): void {
     this.rootGroup = this.createEmptyGroup(this.config.defaultLogicOperator || 'AND');
+    this.advancedFilter = undefined;
+    this.basicFilters = [];
+    this._notifyStateChange();
+  }
+
+  /**
+   * Notify state change to listeners
+   */
+  private _notifyStateChange(): void {
+    if (!this.onStateChange) return;
+
+    const currentState = this.getState();
+    
+    // Skip if state hasn't changed meaningfully
+    if (this.previousState && 
+        JSON.stringify(this.previousState) === JSON.stringify(currentState)) {
+      return;
+    }
+
+    this.previousState = currentState;
+    this.onStateChange(currentState);
   }
 
   // Private helper methods
@@ -477,7 +641,7 @@ export class FilterManager {
   private validateGroup(group: FilterGroup): FilterGroup {
     return {
       ...group,
-      id: group.id || uuidv4(),
+      id: group.id || generateId(),
       logicOperator: 
         group.logicOperator || 
         this.config.defaultLogicOperator || 

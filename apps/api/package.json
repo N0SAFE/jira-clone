@@ -11,6 +11,8 @@
     "migrate:up": "npx directus database migrate:up",
     "migrate:down": "npx directus database migrate:down",
     "migrate:latest": "npx directus database migrate:latest",
+    "migration:generate": "npx tsx ./bin/migrate.ts generate -o old-snapshot.yaml -n snapshot.yaml -d ./migrations",
+    "migration:run": "npx tsx ./bin/migrate.ts run -f",
     "build:force": "npm run export",
     "dev": "dotenv -v CONFIG_PATH=config.js -- directus start",
     "dev:open": "(envcli open $:{NEXT_PUBLIC_API_URL} || envcli cmd.exe /c start $:{NEXT_PUBLIC_API_URL}) && dotenv -v CONFIG_PATH=config.js -- directus start",
@@ -33,12 +35,15 @@
   "description": "",
   "dependencies": {
     "@repo/directus-sdk": "*",
+    "chalk": "^5.4.1",
     "commander": "^12.1.0",
     "directus": "^11.0.1",
     "directus-extension-seed": "^2.0.4",
+    "js-yaml": "^4.1.0",
     "mysql2": "^3.11.0"
   },
   "devDependencies": {
-    "@n0safe/runwhileerror": "^1.0.0"
+    "@n0safe/runwhileerror": "^1.0.0",
+    "@types/js-yaml": "^4.0.9"
   }
 }

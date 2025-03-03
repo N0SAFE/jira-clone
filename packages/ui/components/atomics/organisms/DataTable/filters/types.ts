@@ -43,6 +43,9 @@ export type FilterType = typeof FILTER_TYPES[keyof typeof FILTER_TYPES] | string
 // Type for logic operators
 export type LogicOperator = typeof LOGIC_OPERATORS[keyof typeof LOGIC_OPERATORS];
 
+// Filter mode (basic or advanced)
+export type FilterMode = 'basic' | 'advanced';
+
 // Option type for select inputs
 export interface FilterOption {
   label: string;
@@ -123,6 +126,38 @@ export interface FilterGroup {
 }
 
 /**
+ * Basic filter state
+ */
+export interface FilterState {
+  id: string;
+  value: any;
+  operator: string;
+}
+
+/**
+ * Advanced filter state 
+ */
+export type AdvancedFilterState = any; // Could be complex structure based on your needs
+
+/**
+ * Filter manager state
+ */
+export interface FilterManagerState {
+  filters: FilterState[];
+  advancedFilter?: AdvancedFilterState;
+  mode?: FilterMode;
+  rootGroup?: FilterGroup;
+}
+
+/**
+ * Filter System interface 
+ */
+export interface FilterSystem {
+  operators: Record<string, OperatorDefinition>;
+  filterTypes: Record<string, FilterTypeDefinition>;
+}
+
+/**
  * Configuration for the operator manager
  */
 export interface OperatorConfig {
@@ -147,7 +182,7 @@ export interface FilterConfiguration {
   defaultLogicOperator?: LogicOperator;
   maxConditions?: number;
   enableAdvancedFilter?: boolean;
-  defaultMode?: 'basic' | 'advanced';
+  defaultMode?: FilterMode;
   context?: Record<string, any>; // Global context
   operatorConfig?: OperatorConfig;
 }

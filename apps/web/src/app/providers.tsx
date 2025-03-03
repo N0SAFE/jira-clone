@@ -1,4 +1,5 @@
 import { Monitoring } from 'react-scan/monitoring/next'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import NextAuthProviders from '@/utils/providers/NextAuthProviders/index'
 import NextTopLoader from 'nextjs-toploader'
 import ReactQueryProviders from '@/utils/providers/ReactQueryProviders'
@@ -33,7 +34,9 @@ export function Providers({
                         disableTransitionOnChange
                     >
                         <NextTopLoader showSpinner={false} />
-                        <ReactQueryProviders>{children}</ReactQueryProviders>
+                        <ReactQueryProviders>
+                            <NuqsAdapter>{children}</NuqsAdapter>
+                        </ReactQueryProviders>
                     </ThemeProvider>
                 </Validate>
             </NextAuthProviders>
