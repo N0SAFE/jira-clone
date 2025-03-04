@@ -13,6 +13,7 @@ import { auth } from '@/lib/auth'
 import directus from '@/lib/directus'
 import type * as Directus from '@directus/sdk'
 import { Schema, Collections } from '@repo/directus-sdk/client'
+import { BreadcrumbProvider } from '@/context/BreadcrumbContext'
 
 export default async function ProjectLayout({
     children,
@@ -47,11 +48,19 @@ export default async function ProjectLayout({
                     user_created: ['id', 'avatar', 'first_name', 'last_name'],
                     priorities: ['*'],
                     statuses: ['*'],
-                    members: ['id', {
-                        directus_user: ['id', 'avatar', 'first_name', 'last_name'],
-                    }],
+                    members: [
+                        'id',
+                        {
+                            directus_user: [
+                                'id',
+                                'avatar',
+                                'first_name',
+                                'last_name',
+                            ],
+                        },
+                    ],
                 },
-            ]
+            ],
         },
     ] satisfies [Directus.Query<Schema, Collections.Projects>]
 
@@ -64,18 +73,20 @@ export default async function ProjectLayout({
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <ProjectLoadingProvider>
-                <ProjectProvider>
-                    <div className="relative flex h-full overflow-hidden">
-                        <ProjectSidebar projectId={Number(projectId)}>
-                            <div className="relative flex-1 h-full">
-                                <ProjectLoadingOverlay />
-                                {children}
-                            </div>
-                        </ProjectSidebar>
-                    </div>
-                </ProjectProvider>
-            </ProjectLoadingProvider>
+            <BreadcrumbProvider>
+                <ProjectLoadingProvider>
+                    <ProjectProvider>
+                        <div className="relative flex h-full overflow-hidden">
+                            <ProjectSidebar projectId={Number(projectId)}>
+                                <div className="relative h-full flex-1">
+                                    <ProjectLoadingOverlay />
+                                    {children}
+                                </div>
+                            </ProjectSidebar>
+                        </div>
+                    </ProjectProvider>
+                </ProjectLoadingProvider>
+            </BreadcrumbProvider>
         </HydrationBoundary>
     )
 }
