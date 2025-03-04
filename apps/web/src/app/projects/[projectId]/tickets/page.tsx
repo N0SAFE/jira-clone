@@ -36,6 +36,7 @@ import {
 } from '@repo/ui/components/shadcn/alert'
 import { parseAsJson, useQueryState } from 'nuqs'
 import { z } from 'zod'
+import { parseFilterToDirectus } from '@repo/ui/components/atomics/organisms/DataTable/filters/filterParser'
 
 const filtersSchema = z.array(
     z.object({
@@ -52,7 +53,10 @@ export default function TicketsPage() {
     const tableRef = useRef(null)
     const router = useRouter()
     const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false)
-    const [filters, setFilters] = useQueryState('filters', parseAsJson(filtersSchema.parse))
+    const [filters, setFilters] = useQueryState(
+        'filters',
+        parseAsJson(filtersSchema.parse)
+    )
 
     // Fetch tickets statuses
     const {
@@ -179,6 +183,11 @@ export default function TicketsPage() {
     // Use columns from the columns.tsx file with column options
     const columns = useColumns(columnOptions)
 
+    console.log(filters)
+    if (filters) {
+        console.log(parseFilterToDirectus(filters))
+    }
+
     // Fetch tickets with all the relevant relationships
     const {
         data: tickets = [],
@@ -291,7 +300,7 @@ export default function TicketsPage() {
         isLoadingTypes
 
     return (
-        <div className="flex h-full flex-col">
+        <div className="flex h-auto flex-col overflow-hidden h-full">
             <div className="flex-none p-8 pt-6">
                 <div className="flex items-center justify-between">
                     <div>
@@ -330,7 +339,7 @@ export default function TicketsPage() {
                 </div>
             )}
 
-            <div className="min-h-0 flex-1 overflow-auto p-8 pt-0">
+            <div className="min-h-0 flex-1 p-8 pt-0 h-full flex flex-col">
                 {isLoading ? (
                     <Card>
                         <CardHeader>
@@ -377,6 +386,9 @@ export default function TicketsPage() {
                             onFilterChange={setFilters}
                         />
                         <DataTable
+                            className="h-full py-4"
+                        // divClassname='overflow-auto'
+                            divClassname='*:h-full'
                             isLoading={!isFetched}
                             notFound={
                                 <div className="py-10 text-center">

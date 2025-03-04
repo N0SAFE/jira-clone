@@ -171,93 +171,93 @@ const typeOptions = [
  * @see docs/filters.md for detailed documentation
  */
 export const ticketFilterConfig: FilterConfiguration = {
-  // Use our system configuration with custom operators and filter types
-  systemConfig: ticketSystemConfig,
-  
-  // Define all available filters
   filters: [
     {
       id: 'title',
       label: 'Title',
       filterType: FILTER_TYPES.TEXT,
-      placeholder: 'Search by title...',
-      defaultOperator: OPERATORS.CONTAINS
-    },
-    {
-      id: 'type',
-      label: 'Type',
-      filterType: FILTER_TYPES.SELECT,
-      options: typeOptions
-    },
-    {
-      id: 'status',
-      label: 'Status',
-      filterType: FILTER_TYPES.SELECT,
-      options: statusOptions
-    },
-    {
-      id: 'priority',
-      label: 'Priority',
-      filterType: 'priority',
-      options: priorityOptions
+      defaultOperator: 'contains'
     },
     {
       id: 'description',
       label: 'Description',
       filterType: FILTER_TYPES.TEXT,
-      placeholder: 'Search in description...',
-      defaultOperator: OPERATORS.CONTAINS
+      defaultOperator: 'contains'
     },
     {
-      id: 'assignee',
+      id: 'status',
+      label: 'Status',
+      filterType: FILTER_TYPES.SELECT,
+      options: [
+        { label: 'Open', value: 'open' },
+        { label: 'In Progress', value: 'in_progress' },
+        { label: 'Done', value: 'done' }
+      ],
+      defaultOperator: 'equals'
+    },
+    {
+      id: 'priority',
+      label: 'Priority',
+      filterType: FILTER_TYPES.SELECT,
+      options: [
+        { label: 'Low', value: 'low' },
+        { label: 'Medium', value: 'medium' },
+        { label: 'High', value: 'high' },
+        { label: 'Critical', value: 'critical' }
+      ],
+      defaultOperator: 'equals'
+    },
+    {
+      id: 'assignee_id',
       label: 'Assignee',
-      filterType: 'user',
-      placeholder: 'Filter by assignee...'
+      filterType: FILTER_TYPES.SELECT,
+      options: [
+        { label: 'Assigned to me', value: 'me' },
+        { label: 'Unassigned', value: null }
+      ],
+      defaultOperator: 'equals'
+    },
+    {
+      id: 'reporter_id',
+      label: 'Reporter',
+      filterType: FILTER_TYPES.SELECT,
+      options: [
+        { label: 'Created by me', value: 'me' }
+      ],
+      defaultOperator: 'equals'
     },
     {
       id: 'created_at',
-      label: 'Created',
+      label: 'Created Date',
       filterType: FILTER_TYPES.DATE,
-      availableOperators: [
-        OPERATORS.EQUALS,
-        OPERATORS.GREATER_THAN,
-        OPERATORS.LESS_THAN,
-        OPERATORS.BETWEEN,
-        OPERATORS.IS_EMPTY
+      defaultOperator: 'equals',
+      options: [
+        { label: 'Today', value: 'today' },
+        { label: 'Yesterday', value: 'yesterday' },
+        { label: 'This Week', value: 'thisWeek' },
+        { label: 'This Month', value: 'thisMonth' }
       ]
     },
     {
       id: 'updated_at',
-      label: 'Updated',
+      label: 'Last Updated',
       filterType: FILTER_TYPES.DATE,
-      availableOperators: [
-        OPERATORS.EQUALS,
-        OPERATORS.GREATER_THAN,
-        OPERATORS.LESS_THAN,
-        'lastUpdatedRecently',
-        OPERATORS.BETWEEN
-      ],
-      defaultOperator: 'lastUpdatedRecently'
+      defaultOperator: 'equals',
+      options: [
+        { label: 'Today', value: 'today' },
+        { label: 'Yesterday', value: 'yesterday' },
+        { label: 'This Week', value: 'thisWeek' },
+        { label: 'This Month', value: 'thisMonth' }
+      ]
     },
     {
-      id: 'comments',
-      label: 'Has Comments',
-      filterType: FILTER_TYPES.BOOLEAN
-    },
+      id: 'due_date',
+      label: 'Due Date',
+      filterType: FILTER_TYPES.DATE,
+      defaultOperator: 'equals'
+    }
   ],
-  
-  // General settings
   enableAdvancedFilter: true,
-  defaultLogicOperator: 'AND',
-  maxConditions: 10,
   defaultMode: 'basic',
-  
-  // Global context for evaluators
-  context: {
-    // Will be set from the user session in TicketsPage component
-    currentUserId: null,
-    // Will be set from the project context in TicketsPage component
-    currentProjectId: null, 
-    dateFormat: 'dd MMM yyyy'
-  }
-}
+  defaultLogicOperator: 'AND'
+};

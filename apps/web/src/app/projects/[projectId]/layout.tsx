@@ -68,7 +68,7 @@ export default async function ProjectLayout({
                 <ProjectProvider>
                     <div className="relative flex h-full overflow-hidden">
                         <ProjectSidebar projectId={Number(projectId)}>
-                            <div className="relative flex-1">
+                            <div className="relative flex-1 h-full">
                                 <ProjectLoadingOverlay />
                                 {children}
                             </div>

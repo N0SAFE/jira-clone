@@ -1,8 +1,8 @@
 /** @jsxImportSource react */
 'use client'
 
-import React, { useState } from 'react'
-import { format } from 'date-fns'
+import React, { useState, useEffect } from 'react'
+import { format, parseISO, isValid } from 'date-fns'
 import { Calendar as CalendarIcon } from 'lucide-react'
 
 import { Input } from '@repo/ui/components/shadcn/input'
@@ -39,12 +39,26 @@ interface FilterInputBaseProps {
 // Text input component
 export function TextFilterInput(props: FilterInputBaseProps) {
   const { filterId, config, value, onChange, placeholder, context } = props
+  
+  const [inputValue, setInputValue] = useState(value || '')
+  
+  // Update internal state when external value changes
+  useEffect(() => {
+    setInputValue(value || '')
+  }, [value])
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setInputValue(newValue)
+    onChange(filterId, newValue)
+  }
+  
   return (
     <Input
       className="h-8 w-[150px]"
       placeholder={placeholder || config.placeholder || `Filter by ${config.label}...`}
-      onChange={(e) => onChange(filterId, e.target.value)}
-      value={value || ''}
+      value={inputValue}
+      onChange={handleInputChange}
     />
   )
 }
@@ -55,10 +69,23 @@ export function SelectFilterInput(props: FilterInputBaseProps) {
   // Use options from context if provided, otherwise from config
   const options = context?.options || config.options || []
   
+  // Use effect to handle initial state and updates
+  const [selectedValue, setSelectedValue] = useState(value || '__all__')
+  
+  // Update internal state when external value changes
+  useEffect(() => {
+    setSelectedValue(value || '__all__')
+  }, [value])
+  
+  const handleValueChange = (newValue: string) => {
+    setSelectedValue(newValue)
+    onChange(filterId, newValue)
+  }
+  
   return (
     <Select
-      onValueChange={(selectedValue) => onChange(filterId, selectedValue)}
-      value={value || '__all__'}
+      value={selectedValue}
+      onValueChange={handleValueChange}
     >
       <SelectTrigger className="h-8 w-[150px]">
         <SelectValue placeholder={`Select ${config.label}`} />
@@ -81,6 +108,11 @@ export function MultiSelectFilterInput(props: FilterInputBaseProps) {
   // Use options from context if provided, otherwise from config
   const options = context?.options || config.options || []
   const [selectedOptions, setSelectedOptions] = useState<string[]>(Array.isArray(value) ? value : [])
+  
+  // Update internal state when external value changes
+  useEffect(() => {
+    setSelectedOptions(Array.isArray(value) ? value : [])
+  }, [value])
   
   const handleOptionToggle = (optionValue: string) => {
     let newSelection: string[]
@@ -131,36 +163,67 @@ export function MultiSelectFilterInput(props: FilterInputBaseProps) {
 // Date input component
 export function DateFilterInput(props: FilterInputBaseProps) {
   const { filterId, config, value, onChange, context } = props
-  const dateFormat = context?.dateFormat || "PPP"
+  const dateFormat = context?.dateFormat || "MMM dd, yyyy"
+  
+  // Parse date from value
+  const parseDate = (dateValue: any): Date | undefined => {
+    if (!dateValue) return undefined
+    
+    try {
+      if (typeof dateValue === 'string') {
+        const parsedDate = parseISO(dateValue)
+        return isValid(parsedDate) ? parsedDate : undefined
+      }
+      return undefined
+    } catch (e) {
+      console.error("Invalid date format:", dateValue)
+      return undefined
+    }
+  }
+  
+  // Better handling of the date value
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(() => parseDate(value))
+  
+  // Update internal state when external value changes
+  useEffect(() => {
+    setSelectedDate(parseDate(value))
+  }, [value])
+  
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date)
+    // Format as ISO string for consistency
+    const formattedDate = date ? format(date, "yyyy-MM-dd") : null
+    onChange(filterId, formattedDate)
+  }
   
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-[150px] h-8 justify-start text-left font-normal",
-            !value && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? 
-            format(new Date(value), dateFormat) : 
-            "Pick a date"}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          selected={value ? new Date(value) : undefined}
-          onSelect={(date) => {
-            const formattedDate = date ? format(date, "yyyy-MM-dd") : ""
-            onChange(filterId, formattedDate)
-          }}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
+    <div className="relative inline-block">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            type="button" 
+            variant="outline"
+            className={cn(
+              "w-[150px] h-8 px-2 justify-start text-left font-normal",
+              !selectedDate && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {selectedDate ? 
+              format(selectedDate, dateFormat) : 
+              "Pick a date"}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            autoFocus
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   )
 }
 
@@ -187,14 +250,27 @@ export function NumberFilterInput(props: FilterInputBaseProps) {
 // Boolean input component
 export function BooleanFilterInput(props: FilterInputBaseProps) {
   const { filterId, config, value, onChange } = props
+  
+  const [selectedValue, setSelectedValue] = useState<string>(
+    value === true ? 'true' : value === false ? 'false' : '__all__'
+  )
+  
+  // Update internal state when external value changes
+  useEffect(() => {
+    setSelectedValue(value === true ? 'true' : value === false ? 'false' : '__all__')
+  }, [value])
+  
+  const handleValueChange = (newValue: string) => {
+    setSelectedValue(newValue)
+    if (newValue === 'true') onChange(filterId, true)
+    else if (newValue === 'false') onChange(filterId, false)
+    else onChange(filterId, null)
+  }
+  
   return (
     <Select
-      onValueChange={(selectedValue) => {
-        if (selectedValue === 'true') onChange(filterId, true)
-        else if (selectedValue === 'false') onChange(filterId, false)
-        else onChange(filterId, null)
-      }}
-      value={value === true ? 'true' : value === false ? 'false' : '__all__'}
+      value={selectedValue}
+      onValueChange={handleValueChange}
     >
       <SelectTrigger className="h-8 w-[150px]">
         <SelectValue placeholder="Select value" />
@@ -249,33 +325,61 @@ export function NumberRangeFilterInput(props: FilterInputBaseProps) {
 // Date range input
 export function DateRangeFilterInput(props: FilterInputBaseProps) {
   const { filterId, config, value, onChange } = props
-  const [startDate, endDate] = Array.isArray(value) ? value : [null, null]
+  const dateFormat = "MMM dd, yyyy"
+  
+  // Parse date from string
+  const parseDate = (dateStr: any): Date | undefined => {
+    if (!dateStr) return undefined
+    
+    try {
+      if (typeof dateStr === 'string') {
+        const parsedDate = parseISO(dateStr)
+        return isValid(parsedDate) ? parsedDate : undefined
+      }
+      return undefined
+    } catch (e) {
+      console.error("Invalid date string:", dateStr)
+      return undefined
+    }
+  }
+  
+  const [startDate, endDate] = Array.isArray(value) ? 
+    [parseDate(value[0]), parseDate(value[1])] : 
+    [undefined, undefined]
+  
+  const handleStartDateChange = (date: Date | undefined) => {
+    const formattedDate = date ? format(date, "yyyy-MM-dd") : null
+    onChange(filterId, [formattedDate, Array.isArray(value) ? value[1] : null])
+  }
+  
+  const handleEndDateChange = (date: Date | undefined) => {
+    const formattedDate = date ? format(date, "yyyy-MM-dd") : null
+    onChange(filterId, [Array.isArray(value) ? value[0] : null, formattedDate])
+  }
   
   return (
     <div className="flex items-center gap-2">
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="outline"
             className={cn(
-              "w-[100px] h-8 justify-start text-left font-normal",
+              "w-[110px] h-8 px-2 justify-start text-left font-normal",
               !startDate && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-1 h-3 w-3" />
             {startDate ? 
-              format(new Date(startDate), "MM/dd/yy") : 
-              "Start"}
+              format(startDate, "MMM d, yy") : 
+              "Start date"}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent align="start" className="w-auto p-0">
           <Calendar
             mode="single"
-            selected={startDate ? new Date(startDate) : undefined}
-            onSelect={(date) => {
-              const formattedDate = date ? format(date, "yyyy-MM-dd") : null
-              onChange(filterId, [formattedDate, endDate])
-            }}
+            selected={startDate}
+            onSelect={handleStartDateChange}
             initialFocus
           />
         </PopoverContent>
@@ -284,26 +388,24 @@ export function DateRangeFilterInput(props: FilterInputBaseProps) {
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="outline"
             className={cn(
-              "w-[100px] h-8 justify-start text-left font-normal",
+              "w-[110px] h-8 px-2 justify-start text-left font-normal",
               !endDate && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-1 h-3 w-3" />
             {endDate ? 
-              format(new Date(endDate), "MM/dd/yy") : 
-              "End"}
+              format(endDate, "MMM d, yy") : 
+              "End date"}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent align="start" className="w-auto p-0">
           <Calendar
             mode="single"
-            selected={endDate ? new Date(endDate) : undefined}
-            onSelect={(date) => {
-              const formattedDate = date ? format(date, "yyyy-MM-dd") : null
-              onChange(filterId, [startDate, formattedDate])
-            }}
+            selected={endDate}
+            onSelect={handleEndDateChange}
             initialFocus
           />
         </PopoverContent>
