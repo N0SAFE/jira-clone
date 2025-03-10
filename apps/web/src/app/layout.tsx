@@ -15,6 +15,11 @@ const fontSans = Inter({ subsets: ['latin'], variable: '--font-sans' })
 export const metadata: Metadata = {
     title: 'Jira Clone',
     description: 'A Jira clone built with Next.js and shadcn/ui',
+    icons: {
+        icon: '/public/download-removebg-preview.ico',
+        shortcut: '/public/download-removebg-preview.ico',
+        apple: '/public/download-removebg-preview.ico',
+    },
 }
 
 export default async function RootLayout({
@@ -51,10 +56,7 @@ export default async function RootLayout({
                         />
                     )}
                 <Providers>
-                    <div className="bg-background flex flex-col h-screen">
-                        <TopNav />
-                        <main className="flex-1 overflow-y-auto h-full">{children}</main>
-                    </div>
+                    <TopNav>{children}</TopNav>
                 </Providers>
             </body>
         </html>

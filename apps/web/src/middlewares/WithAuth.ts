@@ -10,6 +10,7 @@ import { auth, pages } from '@/lib/auth/index'
 import { matcherHandler } from './utils/utils'
 import { validateEnvSafe } from '#/env'
 import { toAbsoluteUrl } from '@/lib/utils'
+import { Authlogin } from '@/routes'
 
 const env = validateEnvSafe(process.env).data
 
@@ -54,13 +55,15 @@ const withAuth: MiddlewareFactory = (next: NextMiddleware) => {
                 // this else is hit when the user is not authenticated and on the routes listed on the export matcher
                 return NextResponse.redirect(
                     toAbsoluteUrl(
-                        (pages?.signIn ||
+                        pages?.signIn ||
                             env?.NEXT_PUBLIC_SIGNIN_PATH ||
-                            '/auth/login') +
-                            '?callbackUrl=' +
-                            encodeURIComponent(
-                                req.nextUrl.pathname +
-                                    (req.nextUrl.search ?? '')
+                            Authlogin(
+                                {},
+                                {
+                                    callbackUrl:
+                                        req.nextUrl.pathname +
+                                        (req.nextUrl.search ?? ''),
+                                }
                             )
                     )
                 ) // not authenticated, redirect to login
@@ -87,12 +90,9 @@ export const matcher: Matcher = [
             nextjsRegexpPageOnly,
             {
                 not: {
-                    or: [
-                        '/auth/login',
-                        '/'
-                    ]
-                }
-            }
+                    or: ['/auth/login', '/'],
+                },
+            },
         ],
     },
 ]

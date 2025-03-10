@@ -12,6 +12,8 @@ import { useSession } from 'next-auth/react'
 import { DirectusFile } from '@repo/ui/components/atomics/atoms/Directus/DirectusFile'
 import { useProject } from '@/context/ProjectContext'
 import directus from '@/lib/directus'
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
+import { Collections } from '@repo/directus-sdk/client'
 
 type TeamMember = {
     id: string;
@@ -39,6 +41,23 @@ export default function TeamPage() {
     }).filter((member): member is TeamMember => 
         member !== null
     ) || []
+
+    // Setup real-time updates for project members
+    useRealtimeUpdates({
+        collection: 'project_members',
+        queryKey: ['projects', project?.id, 'members'],
+        showToast: true,
+        toastMessages: {
+            create: (data) => {
+                const user = data.directus_user
+                return `${user.first_name} ${user.last_name} joined the project`
+            },
+            delete: (data) => {
+                const user = data.directus_user
+                return `${user.first_name} ${user.last_name} left the project`
+            }
+        }
+    })
 
     return (
         <div className="space-y-4 p-8 pt-6">

@@ -15,7 +15,7 @@ export type NewProjectProps = {
     isPending: boolean
 }
 
-export const NewProject = ({ onSubmit, isPending }: NewProjectProps) => {
+export const NewProjectModal = ({ onSubmit, isPending }: NewProjectProps) => {
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
 

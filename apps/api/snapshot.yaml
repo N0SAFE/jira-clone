@@ -2,6 +2,78 @@ version: 1
 directus: 11.3.5
 vendor: mysql
 collections:
+  - collection: junction_directus_users_notifications
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: junction_directus_users_notifications
+      color: null
+      display_template: null
+      group: notifications
+      hidden: true
+      icon: import_export
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: 1
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: junction_directus_users_notifications
+  - collection: notifications
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: notifications
+      color: null
+      display_template: null
+      group: null
+      hidden: false
+      icon: null
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: 3
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: notifications
+  - collection: notifications_related
+    meta:
+      accountability: all
+      archive_app_filter: true
+      archive_field: null
+      archive_value: null
+      collapse: open
+      collection: notifications_related
+      color: null
+      display_template: null
+      group: null
+      hidden: true
+      icon: import_export
+      item_duplication_fields: null
+      note: null
+      preview_url: null
+      singleton: false
+      sort: 4
+      sort_field: null
+      translations: null
+      unarchive_value: null
+      versioning: false
+    schema:
+      name: notifications_related
   - collection: projects
     meta:
       accountability: all
@@ -19,7 +91,7 @@ collections:
       note: null
       preview_url: null
       singleton: false
-      sort: 2
+      sort: 1
       sort_field: null
       translations: null
       unarchive_value: draft
@@ -67,7 +139,7 @@ collections:
       note: null
       preview_url: null
       singleton: false
-      sort: 3
+      sort: 2
       sort_field: null
       translations: null
       unarchive_value: draft
@@ -194,6 +266,597 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: directus_users
+    field: notifications
+    type: alias
+    meta:
+      collection: directus_users
+      conditions: null
+      display: null
+      display_options: null
+      field: notifications
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+      readonly: false
+      required: false
+      sort: 2
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: junction_directus_users_notifications
+    field: id
+    type: integer
+    meta:
+      collection: junction_directus_users_notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: junction_directus_users_notifications
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: junction_directus_users_notifications
+    field: directus_user
+    type: string
+    meta:
+      collection: junction_directus_users_notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: directus_user
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: directus_user
+      table: junction_directus_users_notifications
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: junction_directus_users_notifications
+    field: notification
+    type: integer
+    meta:
+      collection: junction_directus_users_notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: notification
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: notification
+      table: junction_directus_users_notifications
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: notifications
+      foreign_key_column: id
+  - collection: junction_directus_users_notifications
+    field: read
+    type: boolean
+    meta:
+      collection: junction_directus_users_notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: read
+      group: null
+      hidden: false
+      interface: boolean
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 4
+      special:
+        - cast-boolean
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: read
+      table: junction_directus_users_notifications
+      data_type: boolean
+      default_value: false
+      max_length: null
+      numeric_precision: 3
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: notifications
+    field: id
+    type: integer
+    meta:
+      collection: notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: input
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: notifications
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: notifications
+    field: user_created
+    type: string
+    meta:
+      collection: notifications
+      conditions: null
+      display: user
+      display_options: null
+      field: user_created
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 2
+      special:
+        - user-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_created
+      table: notifications
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: notifications
+    field: date_created
+    type: timestamp
+    meta:
+      collection: notifications
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_created
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 3
+      special:
+        - date-created
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_created
+      table: notifications
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: notifications
+    field: user_updated
+    type: string
+    meta:
+      collection: notifications
+      conditions: null
+      display: user
+      display_options: null
+      field: user_updated
+      group: null
+      hidden: true
+      interface: select-dropdown-m2o
+      note: null
+      options:
+        template: '{{avatar}} {{first_name}} {{last_name}}'
+      readonly: true
+      required: false
+      sort: 4
+      special:
+        - user-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: user_updated
+      table: notifications
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_users
+      foreign_key_column: id
+  - collection: notifications
+    field: date_updated
+    type: timestamp
+    meta:
+      collection: notifications
+      conditions: null
+      display: datetime
+      display_options:
+        relative: true
+      field: date_updated
+      group: null
+      hidden: true
+      interface: datetime
+      note: null
+      options: null
+      readonly: true
+      required: false
+      sort: 5
+      special:
+        - date-updated
+      translations: null
+      validation: null
+      validation_message: null
+      width: half
+    schema:
+      name: date_updated
+      table: notifications
+      data_type: timestamp
+      default_value: null
+      max_length: null
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: notifications
+    field: related
+    type: alias
+    meta:
+      collection: notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: related
+      group: null
+      hidden: false
+      interface: list-m2a
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 6
+      special:
+        - m2a
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: notifications
+    field: users
+    type: alias
+    meta:
+      collection: notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: users
+      group: null
+      hidden: false
+      interface: list-m2m
+      note: null
+      options:
+        enableLink: true
+        enableSearchFilter: true
+        layout: table
+      readonly: false
+      required: false
+      sort: 7
+      special:
+        - m2m
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+  - collection: notifications_related
+    field: id
+    type: integer
+    meta:
+      collection: notifications_related
+      conditions: null
+      display: null
+      display_options: null
+      field: id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 1
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: id
+      table: notifications_related
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: true
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: true
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: notifications_related
+    field: notifications_id
+    type: integer
+    meta:
+      collection: notifications_related
+      conditions: null
+      display: null
+      display_options: null
+      field: notifications_id
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 2
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: notifications_id
+      table: notifications_related
+      data_type: int unsigned
+      default_value: null
+      max_length: null
+      numeric_precision: 10
+      numeric_scale: 0
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: notifications
+      foreign_key_column: id
+  - collection: notifications_related
+    field: item
+    type: string
+    meta:
+      collection: notifications_related
+      conditions: null
+      display: null
+      display_options: null
+      field: item
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 3
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: item
+      table: notifications_related
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: notifications_related
+    field: collection
+    type: string
+    meta:
+      collection: notifications_related
+      conditions: null
+      display: null
+      display_options: null
+      field: collection
+      group: null
+      hidden: true
+      interface: null
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 4
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: collection
+      table: notifications_related
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: projects
     field: id
     type: integer
@@ -739,6 +1402,46 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: projects
+    field: logo
+    type: uuid
+    meta:
+      collection: projects
+      conditions: null
+      display: null
+      display_options: null
+      field: logo
+      group: null
+      hidden: false
+      interface: file-image
+      note: null
+      options: null
+      readonly: false
+      required: false
+      sort: 13
+      special:
+        - file
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: logo
+      table: projects
+      data_type: char
+      default_value: null
+      max_length: 36
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: true
+      is_unique: false
+      is_indexed: true
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: directus_files
+      foreign_key_column: id
   - collection: projects_directus_users
     field: id
     type: integer
@@ -2925,6 +3628,126 @@ fields:
       foreign_key_table: null
       foreign_key_column: null
 relations:
+  - collection: junction_directus_users_notifications
+    field: notification
+    related_collection: notifications
+    meta:
+      junction_field: directus_user
+      many_collection: junction_directus_users_notifications
+      many_field: notification
+      one_allowed_collections: null
+      one_collection: notifications
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: users
+      sort_field: null
+    schema:
+      table: junction_directus_users_notifications
+      column: notification
+      foreign_key_table: notifications
+      foreign_key_column: id
+      constraint_name: junction_directus_users_notifications_notification_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: junction_directus_users_notifications
+    field: directus_user
+    related_collection: directus_users
+    meta:
+      junction_field: notification
+      many_collection: junction_directus_users_notifications
+      many_field: directus_user
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: notifications
+      sort_field: null
+    schema:
+      table: junction_directus_users_notifications
+      column: directus_user
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: junction_directus_users_notifications_directus_user_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
+  - collection: notifications
+    field: user_created
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: notifications
+      many_field: user_created
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: notifications
+      column: user_created
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: notifications_user_created_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: notifications
+    field: user_updated
+    related_collection: directus_users
+    meta:
+      junction_field: null
+      many_collection: notifications
+      many_field: user_updated
+      one_allowed_collections: null
+      one_collection: directus_users
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: notifications
+      column: user_updated
+      foreign_key_table: directus_users
+      foreign_key_column: id
+      constraint_name: notifications_user_updated_foreign
+      on_update: NO ACTION
+      on_delete: NO ACTION
+  - collection: notifications_related
+    field: item
+    related_collection: null
+    meta:
+      junction_field: notifications_id
+      many_collection: notifications_related
+      many_field: item
+      one_allowed_collections:
+        - projects
+        - tickets
+      one_collection: null
+      one_collection_field: collection
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+  - collection: notifications_related
+    field: notifications_id
+    related_collection: notifications
+    meta:
+      junction_field: item
+      many_collection: notifications_related
+      many_field: notifications_id
+      one_allowed_collections: null
+      one_collection: notifications
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: related
+      sort_field: null
+    schema:
+      table: notifications_related
+      column: notifications_id
+      foreign_key_table: notifications
+      foreign_key_column: id
+      constraint_name: notifications_related_notifications_id_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
   - collection: projects
     field: user_created
     related_collection: directus_users
@@ -2967,6 +3790,27 @@ relations:
       constraint_name: projects_owner_foreign
       on_update: NO ACTION
       on_delete: NO ACTION
+  - collection: projects
+    field: logo
+    related_collection: directus_files
+    meta:
+      junction_field: null
+      many_collection: projects
+      many_field: logo
+      one_allowed_collections: null
+      one_collection: directus_files
+      one_collection_field: null
+      one_deselect_action: nullify
+      one_field: null
+      sort_field: null
+    schema:
+      table: projects
+      column: logo
+      foreign_key_table: directus_files
+      foreign_key_column: id
+      constraint_name: projects_logo_foreign
+      on_update: NO ACTION
+      on_delete: SET NULL
   - collection: projects_directus_users
     field: directus_user
     related_collection: directus_users

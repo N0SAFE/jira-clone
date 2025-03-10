@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Bell, Settings, User as UserIcon } from 'lucide-react'
+import { Bell, HelpCircle, LayoutDashboard, LogOut, Search, Settings, User, User as UserIcon } from 'lucide-react'
 import { Button } from '@repo/ui/components/shadcn/button'
 import {
     DropdownMenu,
@@ -28,140 +28,147 @@ import { Separator } from '@repo/ui/components/shadcn/separator'
 import { Authlogin, Profile, Settings as SettingsRouter } from '@/routes'
 import { signOut } from '@/lib/auth/actions'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import nProgress from 'nprogress'
+import Image from 'next/image'
+import React, { useState } from 'react'
+import { CommandMenu } from '../CommandMenu'
+import { NotificationCenter } from '../notifications/NotificationCenter'
 
-export function TopNav() {
+export function TopNav({
+    children
+}: React.PropsWithChildren<{}>) {
     const { data: session } = useSession()
-    const router = useRouter()
+    const pathname = usePathname()
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
 
     return (
-        <div className="border-b">
-            <div className="flex h-16 items-center justify-between px-4">
-                <div className="flex items-center space-x-4">
-                    <Link href="/" className="text-lg font-semibold">
-                        Jira Clone
-                    </Link>
-                    <Separator orientation="vertical" />
-                    <NavigationMenu>
-                        <NavigationMenuList>
-                            <NavigationMenuItem>
-                                <Link href="/projects" legacyBehavior passHref>
-                                    <NavigationMenuLink
-                                        className={navigationMenuTriggerStyle()}
-                                    >
-                                        Projects
-                                    </NavigationMenuLink>
-                                </Link>
-                            </NavigationMenuItem>
-                        </NavigationMenuList>
-                    </NavigationMenu>
-                </div>
+        <div className="bg-background flex h-screen overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden">
+                {/* Top Navbar */}
+                <header className="flex h-16 items-center justify-between border-b px-4 md:px-6">
+                    <div className="flex items-center gap-2">
+                        <Image
+                            src="/public/download-removebg-preview.png"
+                            alt="Logo"
+                            width={32}
+                            height={32}
+                        />
+                        <Link href="/" className="text-lg font-semibold">
+                            Jira Clone
+                        </Link>
 
-                <div className="flex items-center space-x-4">
-                    {session ? (
-                        <>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="relative"
-                                    >
-                                        <Bell className="h-5 w-5" />
-                                        <Badge
-                                            variant="destructive"
-                                            className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center p-0"
-                                        >
-                                            3
-                                        </Badge>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    className="w-80"
-                                >
-                                    <DropdownMenuLabel>
-                                        Notifications
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm">
-                                                New comment on PROJ-123
-                                            </p>
-                                            <p className="text-muted-foreground text-xs">
-                                                2 minutes ago
-                                            </p>
-                                        </div>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="hidden items-center gap-2 md:flex"
+                            onClick={() => setIsSearchOpen(true)}
+                        >
+                            <Search className="h-4 w-4" />
+                            <span>Search...</span>
+                            <kbd className="bg-muted text-muted-foreground pointer-events-none ml-2 inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium select-none">
+                                <span>⌘</span>K
+                            </kbd>
+                        </Button>
+                    </div>
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        className="relative h-8 w-8 rounded-full"
-                                    >
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage
-                                                src="/avatars/01.png"
-                                                alt={
-                                                    session.user?.name ||
-                                                    '@user'
-                                                }
-                                            />
-                                            <AvatarFallback>
-                                                {session.user?.name?.[0]?.toUpperCase() ||
-                                                    'U'}
-                                            </AvatarFallback>
-                                        </Avatar>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    className="w-56"
-                                    align="end"
+                    <div className="flex items-center gap-4">
+                        {/* Help Menu */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <HelpCircle className="h-5 w-5" />
+                                    <span className="sr-only">Help</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                    Documentation
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    Keyboard Shortcuts
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    Report a Bug
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem>
+                                    About Jira Clone
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Notification Center */}
+                        <NotificationCenter />
+
+                        {/* User Menu */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="relative h-8 w-8 rounded-full"
                                 >
-                                    <DropdownMenuLabel>
-                                        My Account
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        onClick={() =>
-                                            Profile.immediate(router)
-                                        }
-                                    >
-                                        <UserIcon className="mr-2 h-4 w-4" />
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage
+                                            src={
+                                                session?.user?.image ||
+                                                undefined
+                                            }
+                                            alt={session?.user?.name || 'User'}
+                                        />
+                                        <AvatarFallback>
+                                            {session?.user?.name
+                                                ? session.user.name[0].toUpperCase()
+                                                : 'U'}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>
+                                    {session?.user?.name || 'User'}
+                                    <p className="text-muted-foreground mt-0.5 text-xs font-normal">
+                                        {session?.user?.email || ''}
+                                    </p>
+                                </DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href="/dashboard">
+                                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                                        Dashboard
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profile">
+                                        <User className="mr-2 h-4 w-4" />
                                         Profile
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        onClick={() =>
-                                            SettingsRouter.immediate(router)
-                                        }
-                                    >
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/settings">
                                         <Settings className="mr-2 h-4 w-4" />
                                         Settings
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                        className="text-red-600"
-                                        onClick={() =>
-                                            nProgress.start() && signOut()
-                                        }
-                                    >
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href="/api/auth/signout">
+                                        <LogOut className="mr-2 h-4 w-4" />
                                         Log out
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </>
-                    ) : (
-                        <Authlogin.Link>
-                            <Button>Sign In</Button>
-                        </Authlogin.Link>
-                    )}
-                </div>
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <main className="flex-1 overflow-auto">{children}</main>
             </div>
+
+            {/* Command Menu (Global Search) */}
+            <CommandMenu open={isSearchOpen} onOpenChange={setIsSearchOpen} />
         </div>
     )
 }

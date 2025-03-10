@@ -9,9 +9,10 @@ import { serverHealth, withToken } from '@repo/directus-sdk'
 import { validateEnvSafe } from '#/env'
 import { nextauthNoApi, nextjsRegexpPageOnly } from './utils/static'
 import { createDirectusEdgeWithDefaultUrl } from '@/lib/directus/directus-edge'
+import { MiddlewareerrorhealthCheck } from '@/routes'
 
 const env = validateEnvSafe(process.env).data
-const errorPageRenderingPath = '/middleware/error/healthCheck'
+const errorPageRenderingPath = MiddlewareerrorhealthCheck()
 
 const withHealthCheck: MiddlewareFactory = (next: NextMiddleware) => {
     return async (request: NextRequest, _next: NextFetchEvent) => {
@@ -32,8 +33,13 @@ const withHealthCheck: MiddlewareFactory = (next: NextMiddleware) => {
                         } else {
                             return NextResponse.redirect(
                                 request.nextUrl.origin +
-                                    errorPageRenderingPath +
-                                    `?json=${JSON.stringify(data)}&from=${encodeURIComponent(request.url)}`
+                                    MiddlewareerrorhealthCheck(
+                                        {},
+                                        {
+                                            json: JSON.stringify(data),
+                                            from: request.url,
+                                        }
+                                    )
                             )
                         }
                     }
@@ -49,8 +55,13 @@ const withHealthCheck: MiddlewareFactory = (next: NextMiddleware) => {
                             } else {
                                 return NextResponse.redirect(
                                     request.nextUrl.origin +
-                                        errorPageRenderingPath +
-                                        `?json=${JSON.stringify(data)}&from=${encodeURIComponent(request.url)}`
+                                        MiddlewareerrorhealthCheck(
+                                            {},
+                                            {
+                                                json: JSON.stringify(data),
+                                                from: request.url,
+                                            }
+                                        )
                                 )
                             }
                         }
@@ -63,7 +74,12 @@ const withHealthCheck: MiddlewareFactory = (next: NextMiddleware) => {
                     return NextResponse.redirect(
                         request.nextUrl.origin +
                             errorPageRenderingPath +
-                            `?from=${encodeURIComponent(request.url)}`
+                            MiddlewareerrorhealthCheck(
+                                {},
+                                {
+                                    from: request.url,
+                                }
+                            )
                     )
                 }
             }
