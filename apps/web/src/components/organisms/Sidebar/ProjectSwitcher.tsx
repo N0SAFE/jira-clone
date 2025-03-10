@@ -42,6 +42,7 @@ import directus from '@/lib/directus'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useProject } from '@/context/ProjectContext'
 import { useProjectLoading } from '@/context/ProjectLoadingContext'
+import DirectusImage from '@repo/ui/components/atomics/atoms/Directus/DirectusImage'
 
 type ProjectSwitcherProps = {
     projects?: ApplyFields<Collections.Projects>[]
@@ -64,14 +65,10 @@ export function ProjectSwitcher({
     const currentProjectId = Number((params?.projectId as string) || '1')
 
     // Find the selected project from the list of projects
-    const [selectedProject, setSelectedProject] =
-        React.useState<ApplyFields<Collections.Projects> | null>(null)
-
-    directus.Projects.query
-        .bind(directus.Projects)({})
-        .then((projects) => {
-            projects[0]
-        })
+    const [selectedProject, setSelectedProject] = React.useState<ApplyFields<
+        Collections.Projects,
+        ['*', { logo: '*' }]
+    > | null>(null)
 
     const {
         data: projects = [],
@@ -99,8 +96,16 @@ export function ProjectSwitcher({
                         },
                     ],
                 },
+                fields: [
+                    '*',
+                    {
+                        logo: ['*'],
+                    },
+                ],
             }),
     })
+
+    console.log(projects)
 
     const createProjectMutation = useMutation({
         mutationFn: async (
@@ -213,13 +218,23 @@ export function ProjectSwitcher({
                             </div>
                         ) : selectedProject ? (
                             <div className="flex items-center gap-2 truncate">
-                                {/* {selectedProject.logo && (
-                                    <selectedProject.logo className="h-4 w-4 shrink-0" />
+                                {selectedProject.logo && (
+                                    <DirectusImage
+                                        directus={directus}
+                                        accessToken={session?.access_token}
+                                        height={16}
+                                        width={16}
+                                        asset={selectedProject.logo.id}
+                                        alt={
+                                            selectedProject.logo.filename_disk ||
+                                            selectedProject.logo.filename_download
+                                        }
+                                    />
                                 )}
                                 <span className="truncate">
                                     {selectedProject.name}
                                 </span>
-                                {selectedProject.plan && (
+                                {/* {selectedProject.plan && (
                                     <span className="text-muted-foreground ml-auto text-xs">
                                         {selectedProject.plan}
                                     </span>
@@ -262,13 +277,27 @@ export function ProjectSwitcher({
                                                 className="text-sm"
                                             >
                                                 <div className="flex items-center gap-2 truncate">
-                                                    {/* {project.logo && (
-                                                        <project.logo className="h-4 w-4 shrink-0" />
+                                                    {project.logo && (
+                                                        <DirectusImage
+                                                            directus={directus}
+                                                            height={16}
+                                                            width={16}
+                                                            asset={
+                                                                project.logo.id
+                                                            }
+                                                            accessToken={session?.access_token}
+                                                            alt={
+                                                                project.logo
+                                                                    .filename_disk ||
+                                                                project.logo
+                                                                    .filename_download
+                                                            }
+                                                        />
                                                     )}
                                                     <span className="truncate">
                                                         {project.name}
                                                     </span>
-                                                    {project.plan && (
+                                                    {/* {project.plan && (
                                                         <span className="text-muted-foreground ml-auto text-xs">
                                                             {project.plan}
                                                         </span>
@@ -356,7 +385,8 @@ export function ProjectSwitcher({
                             type="submit"
                             disabled={createProjectMutation.isPending}
                         >
-                            Create {createProjectMutation.isPending && (
+                            Create{' '}
+                            {createProjectMutation.isPending && (
                                 <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                             )}
                         </Button>

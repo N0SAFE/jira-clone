@@ -10,9 +10,36 @@ import Link from 'next/link'
 import { Button } from '@repo/ui/components/shadcn/button'
 import { formatDate } from '@/lib/utils'
 import { useProject } from '@/context/ProjectContext'
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function ProjectOverviewPage() {
   const { data: project } = useProject() ?? {}
+  const queryClient = useQueryClient()
+
+  // Setup real-time updates for project details
+  useRealtimeUpdates({
+    collection: 'projects',
+    queryKey: ['projects', project?.id],
+    showToast: true,
+    toastMessages: {
+      update: (data) => `Project "${data.name}" has been updated`
+    }
+  })
+
+  // Setup real-time updates for tickets
+  useRealtimeUpdates({
+    collection: 'tickets',
+    queryKey: ['projects', project?.id, 'tickets'],
+    showToast: false
+  })
+
+  // Setup real-time updates for team members
+  useRealtimeUpdates({
+    collection: 'project_members',
+    queryKey: ['projects', project?.id, 'members'],
+    showToast: false
+  })
 
   // Fetch tickets for the project with expanded relationships
   const { data: tickets = [], isLoading: isLoadingTickets } = useQuery({
@@ -164,19 +191,95 @@ export default function ProjectOverviewPage() {
 
   return (
     <div className="space-y-6 p-8 pt-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-          <p className="text-muted-foreground">{project.description || 'No project description provided'}</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {project?.name}
+          </h1>
+          <p className="text-muted-foreground">
+            {project?.description}
+          </p>
         </div>
-        <div className="flex items-center mt-4 sm:mt-0">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/projects/${project.id}/board`}>
-              View Board
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        <Button variant="outline" size="icon" asChild>
+          <Link href={`/projects/${project?.id}/settings`}>
+            <Settings className="h-4 w-4" />
+            <span className="sr-only">Project settings</span>
+          </Link>
+        </Button>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Active Tickets
+            </CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{project?.tickets?.length || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {project?.tickets?.filter(t => t.status?.name === 'Done').length || 0} completed
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Team Members
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{project?.members?.length || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Active contributors
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Recent Activity
+            </CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {project?.activities?.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Events in last 7 days
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">
+              Project Views
+            </CardTitle>
+            <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex space-x-4">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/projects/${project?.id}/board`}>
+                  <LayoutGrid className="mr-2 h-4 w-4" />
+                  Board
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/projects/${project?.id}/tickets`}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  List
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Stats Overview */}

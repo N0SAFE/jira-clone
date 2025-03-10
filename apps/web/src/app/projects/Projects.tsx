@@ -11,7 +11,7 @@ import {
 } from '@repo/ui/components/shadcn/card'
 import { BoardHeader } from '@/components/organisms/BoardHeader'
 import { ProjectsProjectId } from '@/routes'
-import { NewProject } from '@/components/organisms/NewProjectModal'
+import { NewProjectModal } from '@/components/organisms/NewProjectModal'
 import {
     Dialog,
     DialogContent,
@@ -113,7 +113,7 @@ export function Projects() {
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
-                            <NewProject
+                            <NewProjectModal
                                 onSubmit={projectMutation.mutate}
                                 isPending={projectMutation.isPending}
                             />

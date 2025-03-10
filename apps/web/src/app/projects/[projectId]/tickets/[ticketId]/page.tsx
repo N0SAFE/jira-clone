@@ -52,6 +52,7 @@ import { useEditableField } from '@/hooks/useEditableField'
 import { Textarea } from '@repo/ui/components/shadcn/textarea'
 import { Input } from '@repo/ui/components/shadcn/input'
 import { useSession } from 'next-auth/react'
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
 
 // Dynamic icon component based on icon name from API
 const DynamicIcon = ({ iconName }: { iconName?: string }) => {
@@ -320,6 +321,34 @@ export default function TicketPage() {
     const refreshTicket = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tickets', Number(ticketId)] })
     }, [queryClient, projectId, ticketId])
+
+    // Setup real-time updates for ticket changes
+    useRealtimeUpdates({
+        collection: 'tickets',
+        queryKey: ['projects', projectId, 'tickets', Number(ticketId)],
+        showToast: true,
+        toastMessages: {
+            update: (data) => {
+                const changes = []
+                if (data.status) changes.push(`status changed to ${data.status.name}`)
+                if (data.priority) changes.push(`priority changed to ${data.priority.name}`)
+                if (data.assignee) changes.push(`assigned to ${data.assignee.first_name} ${data.assignee.last_name}`)
+                return `Ticket updated: ${changes.join(', ')}`
+            }
+        }
+    })
+
+    // Setup real-time updates for comments
+    useRealtimeUpdates({
+        collection: 'tickets_comments',
+        queryKey: ['projects', projectId, 'tickets', Number(ticketId), 'comments'],
+        showToast: true,
+        toastMessages: {
+            create: (data) => `New comment added by ${data.user_created?.first_name}`,
+            update: (data) => `Comment updated by ${data.user_created?.first_name}`,
+            delete: () => `Comment was deleted`
+        }
+    })
 
     if (isLoading || !ticket) {
         return (
