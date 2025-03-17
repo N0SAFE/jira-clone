@@ -196,7 +196,7 @@ export const useColumns = (options?: ColumnOptions) => [
                                     </TooltipTrigger>
                                     <TooltipContent side="top" align="start" className="max-w-md">
                                         <div className="space-y-1">
-                                            {data.childs.slice(0, 5).map((child: any) => (
+                                            {data.childs?.slice(0, 5).map((child: any) => (
                                                 <div key={child.id} className="flex items-center gap-1">
                                                     {/* Show type icon if available */}
                                                     {child.type?.icon && (
@@ -377,23 +377,3 @@ export const useColumns = (options?: ColumnOptions) => [
         },
     },
 ] satisfies ColumnDef<DType>[]
-
-const DataTableFilter = ({ mode, config, filterManager, initialState }) => {
-    return (
-        <>
-            {mode === 'basic' ? (
-                <BasicFilterComponent 
-                    config={config}
-                    filterManager={filterManager}
-                    state={filterManager.getState()}
-                />
-            ) : (
-                <AdvancedFilterComponent 
-                    config={config}
-                    filterManager={filterManager}
-                    initialActive={!!initialState?.advancedFilter}
-                />
-            )}
-        </>
-    );
-};

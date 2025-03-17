@@ -161,16 +161,16 @@ export function useRealtimeQuery<
         }
     }, [updater, updateQueryData, abortController, onError, log])
 
-    // Initialisation et nettoyage
-    useEffect(() => {
-        log('Initializing updater')
-        initializeData()
+    // // Initialisation et nettoyage
+    // useEffect(() => {
+    //     log('Initializing updater')
+    //     initializeData()
 
-        return () => {
-            log('Cleaning up updater')
-            abortController.abort()
-        }
-    }, [initializeData, abortController, log])
+    //     return () => {
+    //         log('Cleaning up updater')
+    //         abortController.abort()
+    //     }
+    // }, [initializeData, abortController, log])
 
     // Utiliser React Query avec les données initiales
     return useQuery({

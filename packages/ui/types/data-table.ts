@@ -114,3 +114,13 @@ export interface DataTableRowAction<TData> {
   row: Row<TData>;
   type: "update" | "delete";
 }
+
+// Filter component props interface
+export interface FilterComponentProps {
+    value: any;
+    onChange: (value: any) => void;
+    placeholder?: string;
+    options?: Option[];
+    disabled?: boolean;
+    operator: string;
+  }

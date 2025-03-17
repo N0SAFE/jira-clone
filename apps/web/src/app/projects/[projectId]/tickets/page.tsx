@@ -1,8 +1,8 @@
 'use client'
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Plus, Filter, AlertCircle } from 'lucide-react'
+import { Plus, AlertCircle } from 'lucide-react'
 import { useProject } from '@/context/ProjectContext'
 import directus from '@/lib/directus'
 import { readItems } from '@directus/sdk'
@@ -19,13 +19,11 @@ import { Separator } from '@repo/ui/components/shadcn/separator'
 import { DataTable } from '@repo/ui/components/atomics/organisms/DataTable'
 import { DataTableProvider } from '@repo/ui/components/atomics/organisms/DataTable/DataTableContext'
 import { DataTablePagination } from '@repo/ui/components/atomics/organisms/DataTable/DataTablePagination'
-import { DataTableFilter } from '@repo/ui/components/atomics/organisms/DataTable/DataTableFilter'
 import { TableCell, TableRow } from '@repo/ui/components/shadcn/table'
-import { flexRender } from '@tanstack/react-table'
+import { flexRender, getCoreRowModel } from '@tanstack/react-table'
 import { useColumns, type ColumnOptions } from './columns'
 import CreateTicketDialog from '@/components/tickets/CreateTicketDialog'
-import { ticketFilterConfig } from './filter-config'
-import { FilterManagerState } from '@repo/ui/components/atomics/organisms/DataTable/filters/FilterManager'
+import { useFilterInstance } from './filter-config'
 import { useSession } from 'next-auth/react'
 import { Badge } from '@repo/ui/components/shadcn/badge'
 import { Skeleton } from '@repo/ui/components/shadcn/skeleton'
@@ -36,8 +34,12 @@ import {
 } from '@repo/ui/components/shadcn/alert'
 import { parseAsJson, useQueryState } from 'nuqs'
 import { z } from 'zod'
-import { parseFilterToDirectus } from '@repo/ui/components/atomics/organisms/DataTable/filters/filterParser'
 import { ProjectsProjectIdTicketsTicketId } from '@/routes'
+import { ExtendedSortingState, Filter } from '@repo/ui/types/data-table'
+import { directusFilterAdapter } from '@repo/ui/config/filters/adapter/directus.adapter'
+import { useReactTable } from '@tanstack/react-table'
+import { DataTableFloatingBar } from '../../../../../../../packages/ui/components/atomics/organisms/DataTable/DataTableFloatingBar'
+import { DataTableAdvancedToolbar } from '../../../../../../../packages/ui/components/atomics/organisms/DataTable/DataTableAdvancedToolbar'
 
 const filtersSchema = z.array(
     z.object({
@@ -50,14 +52,18 @@ const filtersSchema = z.array(
 export default function TicketsPage() {
     const { data: project } = useProject() ?? {}
     const { data: session } = useSession() ?? {}
-    const currentUser = session?.user
-    const tableRef = useRef(null)
-    const router = useRouter()
     const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false)
-    const [filters, setFilters] = useQueryState(
-        'filters',
-        parseAsJson(filtersSchema.parse)
-    )
+    const [filters, setFilters] = useState<
+        Filter<typeof directusFilterAdapter>[]
+    >([])
+    const [operator, setOperator] = useState<'and' | 'or'>('and')
+    // State for sorting
+    const [sorting, setSorting] = useState<
+        ExtendedSortingState<Record<string, string>>
+    >([{ id: 'createdAt', desc: true }])
+    // State for pending actions
+    const [isPending, startTransition] = useTransition()
+    const [currentAction, setCurrentAction] = useState<string | null>(null)
 
     // Fetch tickets statuses
     const {
@@ -123,27 +129,13 @@ export default function TicketsPage() {
         },
     })
 
-    // Create a memoized version of the filter config with all dynamic data
-    const enhancedFilterConfig = useMemo(() => {
-        if (!currentUser || !project) return ticketFilterConfig
-        // Find the filter definitions that need dynamic options
-        const updatedFilters = ticketFilterConfig.filters.map((filter) => {
-            switch (filter.id) {
-                default:
-                    return filter
-            }
-        })
-        return {
-            ...ticketFilterConfig,
-            filters: updatedFilters,
-            context: {
-                ...ticketFilterConfig.context,
-                currentUserId: currentUser.id,
-                currentProjectId: project.id,
-                dateFormat: 'dd MMM yyyy',
-            },
-        }
-    }, [currentUser, project])
+    // Transform filters to proper column filters for the table
+    const columnFilters = useMemo(() => {
+        return filters.map((filter) => ({
+            id: filter.id,
+            value: filter,
+        }))
+    }, [filters])
 
     // // Get initial filter state from URL parameters
     // const getInitialFilterState = () => {
@@ -183,11 +175,6 @@ export default function TicketsPage() {
 
     // Use columns from the columns.tsx file with column options
     const columns = useColumns(columnOptions)
-
-    console.log(filters)
-    if (filters) {
-        console.log(parseFilterToDirectus(filters))
-    }
 
     // Fetch tickets with all the relevant relationships
     const {
@@ -300,8 +287,58 @@ export default function TicketsPage() {
         isLoadingPriorities ||
         isLoadingTypes
 
+    const filtersInstance = useFilterInstance(
+        {
+            filters,
+            joinOperator: operator,
+        },
+        {
+            priorityOptions:
+                ticketPriorities.map(({ id, name }) => ({
+                    label: name,
+                    value: id,
+                })) || [],
+            statusOptions:
+                ticketStatuses.map(({ id, name }) => ({
+                    label: name,
+                    value: id,
+                })) || [],
+        },
+        (filters, joinOperator) => {
+            setFilters(filters)
+            setOperator(joinOperator)
+        }
+    )
+
+    const table = useReactTable({
+        data: tickets ?? [],
+        columns,
+        getCoreRowModel: getCoreRowModel(),
+        // pageCount,
+        initialState: {
+            columnPinning: { right: ['actions'] },
+        },
+        state: {
+            sorting,
+            globalFilter: {
+                joinOperator: operator,
+                filters: filters,
+            },
+            columnFilters,
+        },
+        getRowId: (originalRow) => String(originalRow.id),
+        // onSortingChange: (updater) => {
+        //     if (typeof updater === 'function') {
+        //         const newSortingState = updater(sorting)
+        //         setSorting(newSortingState as ExtendedSortingState<Task>)
+        //     } else {
+        //         setSorting(updater as ExtendedSortingState<Task>)
+        //     }
+        // },
+    })
+
     return (
-        <div className="flex h-auto flex-col overflow-hidden h-full">
+        <div className="flex h-full flex-col overflow-hidden">
             <div className="flex-none p-8 pt-6">
                 <div className="flex items-center justify-between">
                     <div>
@@ -340,7 +377,7 @@ export default function TicketsPage() {
                 </div>
             )}
 
-            <div className="min-h-0 flex-1 p-8 pt-0 h-full flex flex-col">
+            <div className="flex h-full min-h-0 flex-1 flex-col p-8 pt-0">
                 {isLoading ? (
                     <Card>
                         <CardHeader>
@@ -364,80 +401,108 @@ export default function TicketsPage() {
                         </CardContent>
                     </Card>
                 ) : (
-                    <DataTableProvider
-                        columns={columns}
-                        data={tickets ?? []}
-                        tableRef={tableRef}
-                        initialState={{
-                            columnVisibility: {
-                                id: false,
-                                reporter: false,
-                                date_created: false,
-                                due_date: false,
-                                epic: false,
-                                sprint: false,
-                                labels: false,
-                                story_points: false,
-                            },
-                        }}
-                    >
-                        <DataTableFilter
-                            config={enhancedFilterConfig}
-                            initialState={filters}
-                            onFilterChange={setFilters}
-                        />
-                        <DataTable
-                            className="h-full py-4"
-                        // divClassname='overflow-auto'
-                            divClassname='*:h-full'
-                            isLoading={!isFetched}
-                            notFound={
-                                <div className="py-10 text-center">
-                                    <h3 className="text-lg font-medium">
-                                        No tickets found
-                                    </h3>
-                                    <p className="text-muted-foreground mt-2">
-                                        Get started by creating a new ticket for
-                                        this project.
-                                    </p>
-                                    <Button
-                                        variant="outline"
-                                        className="mt-4"
-                                        onClick={() =>
-                                            setIsCreateTicketOpen(true)
-                                        }
-                                        disabled={!project}
-                                    >
-                                        <Plus className="mr-2 h-4 w-4" />
-                                        Create Ticket
-                                    </Button>
-                                </div>
-                            }
-                            row={(row) => (
-                                <TableRow
-                                    key={row.id}
-                                    className="hover:bg-muted/50 cursor-pointer"
-                                    onClick={() => {
-                                        if (!project) return
-                                        ProjectsProjectIdTicketsTicketId.immediate(router, {
-                                            projectId: project.id,
-                                            ticketId: row.getValue('id'),
-                                        })
-                                    }}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            )}
-                        />
-                        <DataTablePagination />
-                    </DataTableProvider>
+                    <>
+                        <DataTable table={table}>
+                            <DataTableAdvancedToolbar
+                                table={table}
+                                shallow={false}
+                                instance={filtersInstance}
+                                onFiltersChange={(filters) => {
+                                    setFilters(filters)
+                                }}
+                                onJoinOperatorChange={(operator) => {
+                                    setOperator(operator)
+                                }}
+                                filters={filters}
+                                joinOperator={operator}
+                            />
+                        </DataTable>
+                        <div className="flex flex-col gap-2.5">
+                            <DataTablePagination table={table} />
+                            <DataTableFloatingBar
+                                table={table}
+                                // actionGenerator={generateActions}
+                                // helpers={{ tag, setTag }}
+                            />
+                        </div>
+                    </>
+                    // <DataTableProvider
+                    //     columns={columns}
+                    //     data={tickets ?? []}
+                    //     tableRef={tableRef}
+                    //     initialState={{
+                    //         columnVisibility: {
+                    //             id: false,
+                    //             reporter: false,
+                    //             date_created: false,
+                    //             due_date: false,
+                    //             epic: false,
+                    //             sprint: false,
+                    //             labels: false,
+                    //             story_points: false,
+                    //         },
+                    //     }}
+                    // >
+                    //     <DataTableFilter
+                    //         config={enhancedFilterConfig}
+                    //         initialState={filters}
+                    //         onFilterChange={setFilters}
+                    //     />
+                    //     <DataTable
+                    //         className="h-full py-4"
+                    //         // divClassname='overflow-auto'
+                    //         divClassname="*:h-full"
+                    //         isLoading={!isFetched}
+                    //         notFound={
+                    //             <div className="py-10 text-center">
+                    //                 <h3 className="text-lg font-medium">
+                    //                     No tickets found
+                    //                 </h3>
+                    //                 <p className="text-muted-foreground mt-2">
+                    //                     Get started by creating a new ticket for
+                    //                     this project.
+                    //                 </p>
+                    //                 <Button
+                    //                     variant="outline"
+                    //                     className="mt-4"
+                    //                     onClick={() =>
+                    //                         setIsCreateTicketOpen(true)
+                    //                     }
+                    //                     disabled={!project}
+                    //                 >
+                    //                     <Plus className="mr-2 h-4 w-4" />
+                    //                     Create Ticket
+                    //                 </Button>
+                    //             </div>
+                    //         }
+                    //         row={(row) => (
+                    //             <TableRow
+                    //                 key={row.id}
+                    //                 className="hover:bg-muted/50 cursor-pointer"
+                    //                 onClick={() => {
+                    //                     if (!project) return
+                    //                     ProjectsProjectIdTicketsTicketId.immediate(
+                    //                         router,
+                    //                         {
+                    //                             projectId: project.id,
+                    //                             ticketId: row.getValue('id'),
+                    //                         }
+                    //                     )
+                    //                 }}
+                    //             >
+                    //                 {row.getVisibleCells().map((cell) => (
+                    //                     <TableCell key={cell.id}>
+                    //                         {flexRender(
+                    //                             cell.column.columnDef.cell,
+                    //                             cell.getContext()
+                    //                         )}
+                    //                     </TableCell>
+                    //                 ))}
+                    //             </TableRow>
+                    //         )}
+                    //     />
+                    //     <DataTablePagination />
+                    // </DataTableProvider>
                 )}
             </div>
 
