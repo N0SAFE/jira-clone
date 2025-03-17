@@ -3,8 +3,7 @@ import { Collections } from "@repo/directus-sdk/client"
 import { ApplyFields } from "@repo/directus-sdk/indirectus/utils"
 import { BoardColumn } from "@/components/molecules/BoardColumn"
 import { snapCenterToCursor } from "@dnd-kit/modifiers"
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
-import { useQueryClient } from '@tanstack/react-query'
+import { useDirectusRealtime } from '@/hooks/useRealtimeUpdates'
 
 interface BoardProps {
   tickets: ApplyFields<Collections.Tickets, ['title', 'id', {
@@ -16,13 +15,11 @@ interface BoardProps {
 }
 
 export function Board({ tickets, onDragEnd, statuses }: BoardProps) {
-  const queryClient = useQueryClient()
-
   // Setup real-time updates for tickets
-  useRealtimeUpdates({
-    collection: Collections.Tickets,
+  useDirectusRealtime({
+    collection: 'tickets',
     queryKey: ['tickets'],
-    showToast: false,
+    showToast: true,
     toastMessages: {
       update: (data) => `Ticket "${data.title}" has been updated`
     }

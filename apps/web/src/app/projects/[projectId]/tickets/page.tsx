@@ -37,6 +37,7 @@ import {
 import { parseAsJson, useQueryState } from 'nuqs'
 import { z } from 'zod'
 import { parseFilterToDirectus } from '@repo/ui/components/atomics/organisms/DataTable/filters/filterParser'
+import { ProjectsProjectIdTicketsTicketId } from '@/routes'
 
 const filtersSchema = z.array(
     z.object({
@@ -418,9 +419,10 @@ export default function TicketsPage() {
                                     className="hover:bg-muted/50 cursor-pointer"
                                     onClick={() => {
                                         if (!project) return
-                                        router.push(
-                                            `/projects/${project.id}/tickets/${row.getValue('id')}`
-                                        )
+                                        ProjectsProjectIdTicketsTicketId.immediate(router, {
+                                            projectId: project.id,
+                                            ticketId: row.getValue('id'),
+                                        })
                                     }}
                                 >
                                     {row.getVisibleCells().map((cell) => (

@@ -52,7 +52,7 @@ import { useEditableField } from '@/hooks/useEditableField'
 import { Textarea } from '@repo/ui/components/shadcn/textarea'
 import { Input } from '@repo/ui/components/shadcn/input'
 import { useSession } from 'next-auth/react'
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
+import { useDirectusRealtime } from '@/hooks/useRealtimeUpdates'
 
 // Dynamic icon component based on icon name from API
 const DynamicIcon = ({ iconName }: { iconName?: string }) => {
@@ -323,7 +323,7 @@ export default function TicketPage() {
     }, [queryClient, projectId, ticketId])
 
     // Setup real-time updates for ticket changes
-    useRealtimeUpdates({
+    useDirectusRealtime({
         collection: 'tickets',
         queryKey: ['projects', projectId, 'tickets', Number(ticketId)],
         showToast: true,
@@ -339,7 +339,7 @@ export default function TicketPage() {
     })
 
     // Setup real-time updates for comments
-    useRealtimeUpdates({
+    useDirectusRealtime({
         collection: 'tickets_comments',
         queryKey: ['projects', projectId, 'tickets', Number(ticketId), 'comments'],
         showToast: true,

@@ -7,6 +7,7 @@ import Validate from '@/lib/auth/validate'
 import ThemeProvider from '@repo/ui/components/theme-provider'
 import { type JSX } from 'react'
 import { validateEnv } from '#/env'
+import { Toaster } from '@repo/ui/components/shadcn/sonner'
 
 export function Providers({
     children,
@@ -37,6 +38,7 @@ export function Providers({
                         <ReactQueryProviders>
                             <NuqsAdapter>{children}</NuqsAdapter>
                         </ReactQueryProviders>
+                        <Toaster />
                     </ThemeProvider>
                 </Validate>
             </NextAuthProviders>

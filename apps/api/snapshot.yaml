@@ -701,6 +701,84 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: notifications
+    field: title
+    type: string
+    meta:
+      collection: notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: title
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 8
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: title
+      table: notifications
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: notifications
+    field: message
+    type: string
+    meta:
+      collection: notifications
+      conditions: null
+      display: null
+      display_options: null
+      field: message
+      group: null
+      hidden: false
+      interface: input
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 9
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: message
+      table: notifications
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: notifications_related
     field: id
     type: integer
@@ -2132,7 +2210,7 @@ fields:
         layout: table
         sort: null
       readonly: false
-      required: true
+      required: false
       sort: 16
       special:
         - o2m
@@ -3054,45 +3132,6 @@ fields:
       foreign_key_table: null
       foreign_key_column: null
   - collection: tickets_statuses
-    field: color
-    type: string
-    meta:
-      collection: tickets_statuses
-      conditions: null
-      display: null
-      display_options: null
-      field: color
-      group: null
-      hidden: false
-      interface: select-color
-      note: null
-      options: null
-      readonly: false
-      required: true
-      sort: 7
-      special: null
-      translations: null
-      validation: null
-      validation_message: null
-      width: full
-    schema:
-      name: color
-      table: tickets_statuses
-      data_type: varchar
-      default_value: null
-      max_length: 255
-      numeric_precision: null
-      numeric_scale: null
-      is_nullable: false
-      is_unique: false
-      is_indexed: false
-      is_primary_key: false
-      is_generated: false
-      generation_expression: null
-      has_auto_increment: false
-      foreign_key_table: null
-      foreign_key_column: null
-  - collection: tickets_statuses
     field: order
     type: integer
     meta:
@@ -3199,6 +3238,91 @@ fields:
       validation: null
       validation_message: null
       width: full
+  - collection: tickets_statuses
+    field: status
+    type: string
+    meta:
+      collection: tickets_statuses
+      conditions: null
+      display: null
+      display_options: null
+      field: status
+      group: null
+      hidden: false
+      interface: select-dropdown
+      note: null
+      options:
+        choices:
+          - text: to do
+            value: to do
+          - text: in progress
+            value: in progress
+          - text: done
+            value: done
+      readonly: false
+      required: true
+      sort: 11
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: status
+      table: tickets_statuses
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
+  - collection: tickets_statuses
+    field: color
+    type: string
+    meta:
+      collection: tickets_statuses
+      conditions: null
+      display: null
+      display_options: null
+      field: color
+      group: null
+      hidden: false
+      interface: select-color
+      note: null
+      options: null
+      readonly: false
+      required: true
+      sort: 7
+      special: null
+      translations: null
+      validation: null
+      validation_message: null
+      width: full
+    schema:
+      name: color
+      table: tickets_statuses
+      data_type: varchar
+      default_value: null
+      max_length: 255
+      numeric_precision: null
+      numeric_scale: null
+      is_nullable: false
+      is_unique: false
+      is_indexed: false
+      is_primary_key: false
+      is_generated: false
+      generation_expression: null
+      has_auto_increment: false
+      foreign_key_table: null
+      foreign_key_column: null
   - collection: tickets_types
     field: id
     type: integer

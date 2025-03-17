@@ -27,9 +27,9 @@ import { cn } from '@/lib/utils'
 import directus from '@/lib/directus'
 import Link from 'next/link'
 import { Skeleton } from '@repo/ui/components/shadcn/skeleton'
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
 import { Collections } from '@repo/directus-sdk/client'
 import { ApplyFields } from '@repo/directus-sdk/utils'
+import { useDirectusRealtime } from '@/hooks/useRealtimeUpdates'
 
 export function NotificationCenter() {
     const { data: session } = useSession()
@@ -38,60 +38,63 @@ export function NotificationCenter() {
     const [unreadCount, setUnreadCount] = useState<number>(0)
 
     // Fetch notifications
-    const {
-        data: notifications = [],
-        isLoading,
-        refetch,
-    } = useQuery({
-        queryKey: ['notifications'],
-        queryFn: async () => {
-            try {
-                return await directus.Notifications.query({
-                    sort: ['-date_updated'],
-                    filter: {
-                        users: {
-                            directus_user: {
-                                id: {
-                                    _eq: session?.user?.id,
-                                },
-                            },
-                            read: {
-                                _eq: false,
-                            },
-                        },
-                    },
-                    fields: [
-                        '*',
-                        {
-                            user_created: ['*'],
-                            related: ['collection', { item: ['*'] }],
-                            users: ['*'],
-                        },
-                    ],
-                    deep: {
-                        users: {
-                            _filter: {
-                                directus_user: {
-                                    id: {
-                                        _eq: session?.user?.id,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                })
-            } catch (error) {
-                console.error('Error fetching notifications:', error)
-                return []
-            }
-        },
-        enabled: !!session?.user?.id,
-    })
+    // const {
+    //     data: notifications = [],
+    //     isLoading,
+    //     refetch,
+    // } = useQuery({
+    //     queryKey: ['notifications'],
+    //     queryFn: async () => {
+    //         try {
+    //             return await directus.Notifications.query({
+    //                 sort: ['-date_updated'],
+    //                 filter: {
+    //                     users: {
+    //                         directus_user: {
+    //                             id: {
+    //                                 _eq: session?.user?.id,
+    //                             },
+    //                         },
+    //                         read: {
+    //                             _eq: false,
+    //                         },
+    //                     },
+    //                 },
+    //                 fields: [
+    //                     '*',
+    //                     {
+    //                         user_created: ['*'],
+    //                         related: ['collection', { item: ['*'] }],
+    //                         users: ['*'],
+    //                     },
+    //                 ],
+    //                 deep: {
+    //                     users: {
+    //                         _filter: {
+    //                             directus_user: {
+    //                                 id: {
+    //                                     _eq: session?.user?.id,
+    //                                 },
+    //                             },
+    //                         },
+    //                     },
+    //                 },
+    //             })
+    //         } catch (error) {
+    //             console.error('Error fetching notifications:', error)
+    //             return []
+    //         }
+    //     },
+    //     enabled: !!session?.user?.id,
+    // })
+
+    const notifications = []
+    const isLoading = false
 
     console.log(notifications)
 
     // Setup real-time updates for notifications
-    useRealtimeUpdates({
+    useDirectusRealtime({
         collection: 'notifications',
         queryKey: ['notifications'],
         showToast: true,
@@ -103,7 +106,7 @@ export function NotificationCenter() {
     })
 
     // Filter notifications based on active tab
-    const filteredNotifications = notifications.filter((notification) => {
+    const filteredNotifications = notifications?.filter((notification) => {
         if (activeTab === 'all') return true
         // if (activeTab === 'unread') return !notification.read
         // return notification.type === activeTab
