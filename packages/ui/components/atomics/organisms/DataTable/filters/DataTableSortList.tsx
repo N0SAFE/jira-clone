@@ -50,7 +50,6 @@ import { cn, toSentenceCase } from "@repo/ui/lib/utils";
 interface DataTableSortListProps<TData> {
   table: Table<TData>;
   debounceMs: number;
-  shallow?: boolean;
 }
 
 // Sort orders definition
@@ -62,23 +61,21 @@ const sortOrders = [
 export function DataTableSortList<TData>({
   table,
   debounceMs,
-  shallow,
 }: DataTableSortListProps<TData>) {
   const id = React.useId();
 
-  // Get initial sorting state from table
-  const initialSorting = (table.initialState.sorting ??
-    []) as ExtendedSortingState<TData>;
-
-  // Use table's sorting state directly
-  const sorting = table.getState().sorting as ExtendedSortingState<TData>;
+  // Add back initialSorting reference
+  const initialSorting = (table.initialState.sorting ?? []) as ExtendedSortingState<TData>;
   
-  // Function to set sorting that uses table's onSortingChange handler
-  const setSorting = React.useCallback(
-    (value: ExtendedSortingState<TData> | ((prev: ExtendedSortingState<TData>) => ExtendedSortingState<TData>)) => {
-      table.setSorting(typeof value === 'function' ? value(sorting as ExtendedSortingState<TData>) : value);
+  // Get sorting directly from table state
+  const sorting = table.getState().sorting;
+
+  // Remove setSorting wrapper and use table.setSorting directly
+  const debouncedSetSorting = useDebouncedCallback(
+    (value: ExtendedSortingState<TData>) => {
+      table.setSorting(value);
     },
-    [table, sorting]
+    debounceMs
   );
 
   const uniqueSorting = React.useMemo(
@@ -88,8 +85,6 @@ export function DataTableSortList<TData>({
       ),
     [sorting]
   );
-
-  const debouncedSetSorting = useDebouncedCallback(setSorting, debounceMs);
 
   const sortableColumns = React.useMemo(
     () =>
@@ -117,7 +112,8 @@ export function DataTableSortList<TData>({
     );
     if (!firstAvailableColumn) return;
 
-    setSorting([
+    // Use table.setSorting directly
+    table.setSorting([
       ...sorting,
       {
         id: firstAvailableColumn.id as StringKeyOf<TData>,
@@ -135,28 +131,25 @@ export function DataTableSortList<TData>({
     field: Partial<ExtendedColumnSort<TData>>;
     debounced?: boolean;
   }) {
-    const updateFunction = debounced ? debouncedSetSorting : setSorting;
+    const newSorting = sorting.map((sort) =>
+      sort.id === id ? { ...sort, ...field } : sort
+    );
 
-    updateFunction((prevSorting) => {
-      if (!prevSorting) return prevSorting;
-
-      const updatedSorting = prevSorting.map((sort) =>
-        sort.id === id ? { ...sort, ...field } : sort
-      );
-      return updatedSorting;
-    });
+    if (debounced) {
+      debouncedSetSorting(newSorting);
+    } else {
+      table.setSorting(newSorting);
+    }
   }
 
   function removeSort(id: string) {
-    setSorting((prevSorting) =>
-      prevSorting.filter((item) => item.id !== id)
-    );
+    table.setSorting(sorting.filter((item) => item.id !== id));
   }
 
   return (
     <Sortable
       value={sorting}
-      onValueChange={setSorting}
+      onValueChange={(value) => table.setSorting(value)}
       getItemValue={(item) => item.id}
     >
       <Popover>
@@ -362,7 +355,7 @@ export function DataTableSortList<TData>({
                 size="sm"
                 variant="outline"
                 className="rounded"
-                onClick={() => setSorting([])}
+                onClick={() => table.setSorting([])}
               >
                 Reset sorting
               </Button>

@@ -1,57 +1,48 @@
 'use client'
-import { useRef, useState, useMemo, useTransition } from 'react'
+import {
+    useState,
+    useMemo,
+    useTransition,
+    useRef,
+    useCallback,
+    useEffect,
+} from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
-import { Plus, AlertCircle } from 'lucide-react'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Plus, AlertCircle, Loader2 } from 'lucide-react'
 import { useProject } from '@/context/ProjectContext'
 import directus from '@/lib/directus'
 import { readItems } from '@directus/sdk'
 import { Button } from '@repo/ui/components/shadcn/button'
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    CardFooter,
-} from '@repo/ui/components/shadcn/card'
-import { Separator } from '@repo/ui/components/shadcn/separator'
 import { DataTable } from '@repo/ui/components/atomics/organisms/DataTable'
-import { DataTableProvider } from '@repo/ui/components/atomics/organisms/DataTable/DataTableContext'
 import { DataTablePagination } from '@repo/ui/components/atomics/organisms/DataTable/DataTablePagination'
-import { TableCell, TableRow } from '@repo/ui/components/shadcn/table'
-import { flexRender, getCoreRowModel } from '@tanstack/react-table'
+import { TableRow } from '@repo/ui/components/shadcn/table'
+import { getCoreRowModel, Row } from '@tanstack/react-table'
 import { useColumns, type ColumnOptions } from './columns'
 import CreateTicketDialog from '@/components/tickets/CreateTicketDialog'
 import { useFilterInstance } from './filter-config'
 import { useSession } from 'next-auth/react'
 import { Badge } from '@repo/ui/components/shadcn/badge'
-import { Skeleton } from '@repo/ui/components/shadcn/skeleton'
 import {
     Alert,
     AlertTitle,
     AlertDescription,
 } from '@repo/ui/components/shadcn/alert'
-import { parseAsJson, useQueryState } from 'nuqs'
-import { z } from 'zod'
 import { ProjectsProjectIdTicketsTicketId } from '@/routes'
 import { ExtendedSortingState, Filter } from '@repo/ui/types/data-table'
 import { directusFilterAdapter } from '@repo/ui/config/filters/adapter/directus.adapter'
 import { useReactTable } from '@tanstack/react-table'
-import { DataTableFloatingBar } from '../../../../../../../packages/ui/components/atomics/organisms/DataTable/DataTableFloatingBar'
-import { DataTableAdvancedToolbar } from '../../../../../../../packages/ui/components/atomics/organisms/DataTable/DataTableAdvancedToolbar'
-
-const filtersSchema = z.array(
-    z.object({
-        id: z.string(),
-        value: z.string(),
-        operator: z.string(),
-    })
-)
+import { DataTableFloatingBar } from '@repo/ui/components/atomics/organisms/DataTable/DataTableFloatingBar'
+import { DataTableAdvancedToolbar } from '@repo/ui/components/atomics/organisms/DataTable/DataTableAdvancedToolbar'
+import useElementInputDetector from '@/hooks/useElementInputDetector'
+import { Collections } from '@repo/directus-sdk/client'
+import { cn } from '@/lib/utils'
 
 export default function TicketsPage() {
     const { data: project } = useProject() ?? {}
     const { data: session } = useSession() ?? {}
+    const router = useRouter()
+    const queryClient = useQueryClient()
     const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false)
     const [filters, setFilters] = useState<
         Filter<typeof directusFilterAdapter>[]
@@ -64,69 +55,175 @@ export default function TicketsPage() {
     // State for pending actions
     const [isPending, startTransition] = useTransition()
     const [currentAction, setCurrentAction] = useState<string | null>(null)
-
-    // Fetch tickets statuses
-    const {
-        data: ticketStatuses = [],
-        isLoading: isLoadingStatuses,
-        error: statusesError,
-    } = useQuery({
-        queryKey: ['ticket-statuses'],
-        queryFn: async () => {
-            try {
-                return await directus.request(
-                    readItems('tickets_statuses', {
-                        fields: ['id', 'name', 'color', 'order'],
-                        sort: ['order'],
-                    })
-                )
-            } catch (error) {
-                console.error('Error fetching ticket statuses:', error)
-                throw error
-            }
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 10,
+    })
+    const [
+        {
+            data: ticketStatuses = [],
+            isLoading: isLoadingStatuses,
+            error: statusesError,
         },
+        {
+            data: ticketPriorities = [],
+            isLoading: isLoadingPriorities,
+            error: prioritiesError,
+        },
+        {
+            data: ticketTypes = [],
+            isLoading: isLoadingTypes,
+            error: typesError,
+        },
+    ] = useQueries({
+        queries: [
+            {
+                queryKey: ['ticket-statuses'],
+                queryFn: async () => {
+                    try {
+                        return await directus.request(
+                            readItems('tickets_statuses', {
+                                fields: ['id', 'name', 'color', 'order'],
+                                sort: ['order'],
+                            })
+                        )
+                    } catch (error) {
+                        console.error('Error fetching ticket statuses:', error)
+                        throw error
+                    }
+                },
+            },
+            {
+                queryKey: ['ticket-priorities'],
+                queryFn: async () => {
+                    try {
+                        return await directus.request(
+                            readItems('tickets_priorities', {
+                                fields: ['id', 'name', 'color', 'level'],
+                                sort: ['level'],
+                            })
+                        )
+                    } catch (error) {
+                        console.error(
+                            'Error fetching ticket priorities:',
+                            error
+                        )
+                        throw error
+                    }
+                },
+            },
+            {
+                queryKey: ['ticket-types'],
+                queryFn: async () => {
+                    try {
+                        return await directus.TicketsTypes.query({
+                            fields: [
+                                'id',
+                                'name',
+                                'icon',
+                                'level',
+                                'description',
+                            ],
+                            sort: ['level'],
+                        })
+                    } catch (error) {
+                        console.error('Error fetching ticket types:', error)
+                        throw error
+                    }
+                },
+            },
+        ],
     })
 
-    // Fetch ticket priorities
+    // Fetch tickets with all the relevant relationships
     const {
-        data: ticketPriorities = [],
-        isLoading: isLoadingPriorities,
-        error: prioritiesError,
+        data: { tickets = [], ticketsCount } = { tickets: [], ticketsCount: 0 },
+        isFetched,
+        isLoading: isLoadingTickets,
+        error: ticketsError,
     } = useQuery({
-        queryKey: ['ticket-priorities'],
+        queryKey: [
+            'projects',
+            project?.id,
+            'tickets-enhanced',
+            {
+                pagination,
+            },
+        ],
         queryFn: async () => {
+            if (!project?.id) return { tickets: [], ticketsCount: 0 }
             try {
-                return await directus.request(
-                    readItems('tickets_priorities', {
-                        fields: ['id', 'name', 'color', 'level'],
-                        sort: ['level'],
-                    })
-                )
-            } catch (error) {
-                console.error('Error fetching ticket priorities:', error)
-                throw error
-            }
-        },
-    })
-
-    // Fetch ticket types
-    const {
-        data: ticketTypes = [],
-        isLoading: isLoadingTypes,
-        error: typesError,
-    } = useQuery({
-        queryKey: ['ticket-types'],
-        queryFn: async () => {
-            try {
-                return await directus.TicketsTypes.query({
-                    fields: ['id', 'name', 'icon', 'level', 'description'],
-                    sort: ['level'],
+                return Promise.all([
+                    directus.Tickets.query({
+                        fields: [
+                            'id',
+                            'title',
+                            'description',
+                            'date_created',
+                            'date_updated',
+                            'count(comments)',
+                            'count(childs)',
+                            {
+                                status: ['id', 'name', 'color'],
+                                priority: ['id', 'name', 'color', 'level'],
+                                type: ['id', 'name', 'icon'],
+                                user_created: [
+                                    'id',
+                                    'first_name',
+                                    'last_name',
+                                    'avatar',
+                                ],
+                                assignee: [
+                                    'id',
+                                    'first_name',
+                                    'last_name',
+                                    'avatar',
+                                ],
+                                parent: [
+                                    'id',
+                                    'title',
+                                    {
+                                        type: ['id', 'name', 'icon'],
+                                    },
+                                ],
+                                childs: [
+                                    'id',
+                                    'title',
+                                    {
+                                        type: ['id', 'name', 'icon'],
+                                    },
+                                ],
+                            },
+                        ],
+                        filter: {
+                            project: { _eq: project.id },
+                        },
+                        sort: ['-date_updated'],
+                        page: pagination.pageIndex + 1,
+                        limit: pagination.pageSize,
+                    }),
+                    directus.Tickets.aggregate({
+                        aggregate: {
+                            count: ['id'],
+                        },
+                        query: {
+                            filter: {
+                                project: { _eq: project.id },
+                            },
+                        },
+                    }),
+                ]).then(([res, agg]) => {
+                    return {
+                        tickets: res,
+                        ticketsCount: Number(agg.count.id),
+                    }
                 })
             } catch (error) {
-                console.error('Error fetching ticket types:', error)
+                console.error('Error fetching tickets:', error)
                 throw error
             }
         },
+        enabled: !!project?.id,
     })
 
     // Transform filters to proper column filters for the table
@@ -136,35 +233,6 @@ export default function TicketsPage() {
             value: filter,
         }))
     }, [filters])
-
-    // // Get initial filter state from URL parameters
-    // const getInitialFilterState = () => {
-    //     if (typeof window === 'undefined') return undefined
-    //     const params = new URLSearchParams(window.location.search)
-    //     const filters = []
-    //     const seenFilters = new Set()
-    //     // Extract basic filters
-    //     for (const [key, value] of params.entries()) {
-    //         if (key.startsWith('filter.')) {
-    //             const [, filterId] = key.split('.')
-    //             if (!filterId || seenFilters.has(filterId)) continue
-    //             seenFilters.add(filterId)
-    //             const operator =
-    //                 params.get(`filter.${filterId}.operator`) || 'contains'
-    //             filters.push({
-    //                 id: filterId,
-    //                 value,
-    //                 operator,
-    //             })
-    //         }
-    //     }
-    //     // Extract advanced filter
-    //     const advancedFilter = params.get('advancedFilter')
-    //     return {
-    //         filters,
-    //         advancedFilter: advancedFilter ? JSON.parse(advancedFilter) : null,
-    //     }
-    // }
 
     // Prepare column options for the table
     const columnOptions: ColumnOptions = {
@@ -176,109 +244,9 @@ export default function TicketsPage() {
     // Use columns from the columns.tsx file with column options
     const columns = useColumns(columnOptions)
 
-    // Fetch tickets with all the relevant relationships
-    const {
-        data: tickets = [],
-        isFetched,
-        isLoading: isLoadingTickets,
-        error: ticketsError,
-    } = useQuery({
-        queryKey: ['projects', project?.id, 'tickets-enhanced'],
-        queryFn: async () => {
-            if (!project?.id) return []
-            try {
-                return directus.Tickets.query({
-                    fields: [
-                        'id',
-                        'title',
-                        'description',
-                        'date_created',
-                        'date_updated',
-                        'count(comments)',
-                        'count(childs)',
-                        {
-                            status: ['id', 'name', 'color'],
-                            priority: ['id', 'name', 'color', 'level'],
-                            type: ['id', 'name', 'icon'],
-                            user_created: [
-                                'id',
-                                'first_name',
-                                'last_name',
-                                'avatar',
-                            ],
-                            assignee: [
-                                'id',
-                                'first_name',
-                                'last_name',
-                                'avatar',
-                            ],
-                            parent: [
-                                'id',
-                                'title',
-                                {
-                                    type: ['id', 'name', 'icon'],
-                                },
-                            ],
-                            childs: [
-                                'id',
-                                'title',
-                                {
-                                    type: ['id', 'name', 'icon'],
-                                },
-                            ],
-                        },
-                    ],
-                    filter: {
-                        project: { _eq: project.id },
-                    },
-                    limit: 100,
-                    sort: ['-date_updated'],
-                })
-            } catch (error) {
-                console.error('Error fetching tickets:', error)
-                throw error
-            }
-        },
-        enabled: !!project?.id,
-    })
-
     // Check for any errors
     const hasError =
         statusesError || prioritiesError || typesError || ticketsError
-
-    // const handleFilterChange = (filterState: FilterManagerState) => {
-    //     const params = new URLSearchParams(window.location.search)
-    //     // Clear current filters from URL
-    //     Array.from(params.keys())
-    //         .filter(
-    //             (key) => key.startsWith('filter.') || key === 'advancedFilter'
-    //         )
-    //         .forEach((key) => params.delete(key))
-    //     // Add basic filters to URL
-    //     if (!filterState.advancedFilter) {
-    //         filterState.filters.forEach((filter) => {
-    //             if (filter.value && filter.value !== '__all__') {
-    //                 params.set(`filter.${filter.id}`, String(filter.value))
-    //                 params.set(`filter.${filter.id}.operator`, filter.operator)
-    //             }
-    //         })
-    //     }
-    //     // Add advanced filter to URL if present
-    //     if (filterState.advancedFilter) {
-    //         params.set(
-    //             'advancedFilter',
-    //             JSON.stringify(filterState.advancedFilter)
-    //         )
-    //     } else {
-    //         params.delete('advancedFilter')
-    //     }
-    //     // Update URL without reloading
-    //     window.history.replaceState(
-    //         {},
-    //         '',
-    //         `${window.location.pathname}?${params.toString()}`
-    //     )
-    // }
 
     // Loading state
     const isLoading =
@@ -314,9 +282,9 @@ export default function TicketsPage() {
         data: tickets ?? [],
         columns,
         getCoreRowModel: getCoreRowModel(),
-        // pageCount,
         initialState: {
             columnPinning: { right: ['actions'] },
+            sorting: sorting, // Make sure initial sorting state is set
         },
         state: {
             sorting,
@@ -325,17 +293,134 @@ export default function TicketsPage() {
                 filters: filters,
             },
             columnFilters,
+            pagination,
         },
+        manualPagination: true,
+        manualSorting: true, // Add this to indicate manual sorting
+        rowCount: ticketsCount,
         getRowId: (originalRow) => String(originalRow.id),
-        // onSortingChange: (updater) => {
-        //     if (typeof updater === 'function') {
-        //         const newSortingState = updater(sorting)
-        //         setSorting(newSortingState as ExtendedSortingState<Task>)
-        //     } else {
-        //         setSorting(updater as ExtendedSortingState<Task>)
-        //     }
-        // },
+        onPaginationChange: (updater) => {
+            if (typeof updater === 'function') {
+                const newPaginationState = updater(pagination)
+                setPagination(newPaginationState)
+            } else {
+                setPagination(updater)
+            }
+        },
+        onSortingChange: (updater) => {
+            if (typeof updater === 'function') {
+                const newSortingState = updater(sorting)
+                setSorting(newSortingState)
+                // Trigger refetch when sorting changes
+                table.resetPageIndex()
+            } else {
+                setSorting(updater)
+                // Trigger refetch when sorting changes
+                table.resetPageIndex()
+            }
+        },
     })
+
+    // Add this effect to refetch data when sorting changes
+    useEffect(() => {
+        if (project?.id) {
+            // Invalidate the query to trigger a refetch
+            queryClient.invalidateQueries({
+                queryKey: ['projects', project.id, 'tickets-enhanced'],
+            })
+        }
+    }, [sorting, project?.id])
+
+    console.log(tickets)
+    console.log(sorting)
+
+    const handleRowClick = useCallback(
+        (rowId: Collections.Tickets['id']) => {
+            if (!project) return
+            ProjectsProjectIdTicketsTicketId.immediate(router, {
+                projectId: project.id,
+                ticketId: rowId,
+            })
+        },
+        [project, router]
+    )
+
+    // Add state for tracking last selected row
+    const lastSelectedRef = useRef<string | null>(null)
+
+    const renderTableRow = useCallback(
+        (row: Row<(typeof tickets)[number]>, children: React.ReactNode) => {
+            const rowRef = useRef<HTMLTableRowElement>(null)
+
+            useElementInputDetector(rowRef, {
+                bindings: {
+                    // Shift+click OR Ctrl+click for multi-select
+                    '(click(left)+shift)|(click(left)+ctrl)': (e) => {
+                        if (!lastSelectedRef.current) {
+                            row.toggleSelected()
+                            lastSelectedRef.current = row.id
+                            return
+                        }
+
+                        if (e instanceof MouseEvent && e.shiftKey) {
+                            // Get all visible rows
+                            const rows = table.getRowModel().rows
+                            const lastSelectedIdx = rows.findIndex(
+                                (r) => r.id === lastSelectedRef.current
+                            )
+                            const currentIdx = rows.findIndex(
+                                (r) => r.id === row.id
+                            )
+
+                            if (lastSelectedIdx === -1) return
+
+                            // Select all rows between last selected and current
+                            const start = Math.min(lastSelectedIdx, currentIdx)
+                            const end = Math.max(lastSelectedIdx, currentIdx)
+
+                            rows.slice(start, end + 1).forEach((r) =>
+                                r.toggleSelected(true)
+                            )
+                        } else {
+                            // Ctrl+click case
+                            row.toggleSelected()
+                            lastSelectedRef.current = row.id
+                        }
+                    },
+                    'click(left)': () => {
+                        // Clear other selections on normal click
+                        table.toggleAllRowsSelected(false)
+                        row.toggleSelected(true)
+                        lastSelectedRef.current = row.id
+                        handleRowClick(row.original.id)
+                    },
+                    // Right click to select without opening context menu
+                    'click(right)': (e) => {
+                        e.preventDefault()
+                        if (!row.getIsSelected()) {
+                            table.toggleAllRowsSelected(false)
+                            row.toggleSelected(true)
+                        }
+                    }
+                },
+            })
+
+            return (
+                <TableRow
+                    ref={rowRef}
+                    data-row-id={row.id}
+                    className={cn(
+                        'hover:bg-muted/50 cursor-pointer',
+                        row.getIsSelected() && 'bg-muted'
+                    )}
+                    tabIndex={0}
+                >
+                    {children}
+                </TableRow>
+            )
+        },
+        [handleRowClick, table]
+    )
 
     return (
         <div className="flex h-full flex-col overflow-hidden">
@@ -378,132 +463,39 @@ export default function TicketsPage() {
             )}
 
             <div className="flex h-full min-h-0 flex-1 flex-col p-8 pt-0">
-                {isLoading ? (
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <Skeleton className="h-8 w-[200px]" />
-                                <Skeleton className="h-8 w-[120px]" />
+                <DataTableAdvancedToolbar
+                    table={table}
+                    instance={filtersInstance}
+                    onFiltersChange={(filters) => {
+                        setFilters(filters)
+                    }}
+                    onJoinOperatorChange={(operator) => {
+                        setOperator(operator)
+                    }}
+                    filters={filters}
+                    joinOperator={operator}
+                />
+
+                <div className="relative flex-1">
+                    <DataTable table={table} renderRow={renderTableRow}>
+                        <DataTableFloatingBar
+                            table={table}
+                            // actionGenerator={generateActions}
+                            // helpers={{ tag, setTag }}
+                        />
+                    </DataTable>
+                    {isLoading && (
+                        <div className="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
+                            <div className="flex flex-col items-center gap-2">
+                                <Loader2 className="text-primary h-8 w-8 animate-spin" />
+                                <span className="text-sm font-medium">
+                                    Loading tickets...
+                                </span>
                             </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <div key={i} className="flex gap-4">
-                                        <Skeleton className="h-8 w-[60px]" />
-                                        <Skeleton className="h-8 w-[100px]" />
-                                        <Skeleton className="h-8 w-[250px]" />
-                                        <Skeleton className="h-8 w-[80px]" />
-                                        <Skeleton className="h-8 w-[80px]" />
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ) : (
-                    <>
-                        <DataTable table={table}>
-                            <DataTableAdvancedToolbar
-                                table={table}
-                                shallow={false}
-                                instance={filtersInstance}
-                                onFiltersChange={(filters) => {
-                                    setFilters(filters)
-                                }}
-                                onJoinOperatorChange={(operator) => {
-                                    setOperator(operator)
-                                }}
-                                filters={filters}
-                                joinOperator={operator}
-                            />
-                        </DataTable>
-                        <div className="flex flex-col gap-2.5">
-                            <DataTablePagination table={table} />
-                            <DataTableFloatingBar
-                                table={table}
-                                // actionGenerator={generateActions}
-                                // helpers={{ tag, setTag }}
-                            />
                         </div>
-                    </>
-                    // <DataTableProvider
-                    //     columns={columns}
-                    //     data={tickets ?? []}
-                    //     tableRef={tableRef}
-                    //     initialState={{
-                    //         columnVisibility: {
-                    //             id: false,
-                    //             reporter: false,
-                    //             date_created: false,
-                    //             due_date: false,
-                    //             epic: false,
-                    //             sprint: false,
-                    //             labels: false,
-                    //             story_points: false,
-                    //         },
-                    //     }}
-                    // >
-                    //     <DataTableFilter
-                    //         config={enhancedFilterConfig}
-                    //         initialState={filters}
-                    //         onFilterChange={setFilters}
-                    //     />
-                    //     <DataTable
-                    //         className="h-full py-4"
-                    //         // divClassname='overflow-auto'
-                    //         divClassname="*:h-full"
-                    //         isLoading={!isFetched}
-                    //         notFound={
-                    //             <div className="py-10 text-center">
-                    //                 <h3 className="text-lg font-medium">
-                    //                     No tickets found
-                    //                 </h3>
-                    //                 <p className="text-muted-foreground mt-2">
-                    //                     Get started by creating a new ticket for
-                    //                     this project.
-                    //                 </p>
-                    //                 <Button
-                    //                     variant="outline"
-                    //                     className="mt-4"
-                    //                     onClick={() =>
-                    //                         setIsCreateTicketOpen(true)
-                    //                     }
-                    //                     disabled={!project}
-                    //                 >
-                    //                     <Plus className="mr-2 h-4 w-4" />
-                    //                     Create Ticket
-                    //                 </Button>
-                    //             </div>
-                    //         }
-                    //         row={(row) => (
-                    //             <TableRow
-                    //                 key={row.id}
-                    //                 className="hover:bg-muted/50 cursor-pointer"
-                    //                 onClick={() => {
-                    //                     if (!project) return
-                    //                     ProjectsProjectIdTicketsTicketId.immediate(
-                    //                         router,
-                    //                         {
-                    //                             projectId: project.id,
-                    //                             ticketId: row.getValue('id'),
-                    //                         }
-                    //                     )
-                    //                 }}
-                    //             >
-                    //                 {row.getVisibleCells().map((cell) => (
-                    //                     <TableCell key={cell.id}>
-                    //                         {flexRender(
-                    //                             cell.column.columnDef.cell,
-                    //                             cell.getContext()
-                    //                         )}
-                    //                     </TableCell>
-                    //                 ))}
-                    //             </TableRow>
-                    //         )}
-                    //     />
-                    //     <DataTablePagination />
-                    // </DataTableProvider>
-                )}
+                    )}
+                </div>
+                <DataTablePagination table={table} />
             </div>
 
             {project && (

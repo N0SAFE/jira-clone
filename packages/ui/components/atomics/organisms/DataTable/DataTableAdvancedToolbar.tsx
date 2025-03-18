@@ -20,7 +20,6 @@ interface DataTableAdvancedToolbarProps<TData, TAdapter extends FilterAdapter>
     extends React.HTMLAttributes<HTMLDivElement> {
     table: Table<TData>
     debounceMs?: number
-    shallow?: boolean
     instance: FiltersInstance<TAdapter>
     onFiltersChange?: (filters: Filter<TAdapter>[]) => void
     onJoinOperatorChange?: (operator: 'and' | 'or') => void
@@ -34,7 +33,6 @@ export function DataTableAdvancedToolbar<
 >({
     table,
     debounceMs = 300,
-    shallow = false,
     instance,
     onFiltersChange,
     onJoinOperatorChange,
@@ -109,7 +107,6 @@ export function DataTableAdvancedToolbar<
                     <DataTableSortList
                         table={table}
                         debounceMs={debounceMs}
-                        shallow={shallow}
                     />
                 </div>
                 <div className="flex items-center">
