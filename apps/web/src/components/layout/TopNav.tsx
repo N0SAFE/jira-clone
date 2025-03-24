@@ -25,8 +25,7 @@ import {
     navigationMenuTriggerStyle,
 } from '@repo/ui/components/shadcn/navigation-menu'
 import { Separator } from '@repo/ui/components/shadcn/separator'
-import { Authlogin, Profile, Settings as SettingsRouter } from '@/routes'
-import { signOut } from '@/lib/auth/actions'
+import { Authlogin, Home, Profile, Settings as SettingsRouter } from '@/routes'
 import { useSession } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import nProgress from 'nprogress'
@@ -34,6 +33,7 @@ import Image from 'next/image'
 import React, { useState } from 'react'
 import { CommandMenu } from '../CommandMenu'
 import { NotificationCenter } from '../notifications/NotificationCenter'
+import { signOut } from '@/lib/auth/actions'
 
 export function TopNav({
     children
@@ -41,6 +41,7 @@ export function TopNav({
     const { data: session } = useSession()
     const pathname = usePathname()
     const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const router = useRouter()
 
     return (
         <div className="bg-background flex h-screen overflow-hidden">
@@ -152,11 +153,11 @@ export function TopNav({
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href="/api/auth/signout">
+                                <DropdownMenuItem onClick={() => {signOut({
+                                    
+                                }); Home.immediate(router) }}>
                                         <LogOut className="mr-2 h-4 w-4" />
                                         Log out
-                                    </Link>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

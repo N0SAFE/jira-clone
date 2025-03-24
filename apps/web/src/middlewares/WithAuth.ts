@@ -55,8 +55,6 @@ const withAuth: MiddlewareFactory = (next: NextMiddleware) => {
                 // this else is hit when the user is not authenticated and on the routes listed on the export matcher
                 return NextResponse.redirect(
                     toAbsoluteUrl(
-                        pages?.signIn ||
-                            env?.NEXT_PUBLIC_SIGNIN_PATH ||
                             Authlogin(
                                 {},
                                 {

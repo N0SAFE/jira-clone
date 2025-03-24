@@ -1,4 +1,4 @@
-import NextAuth, { User } from 'next-auth'
+import NextAuth, { AuthError, User } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { handleError } from '../utils'
 import { AuthenticationData, readMe, withToken } from '@repo/directus-sdk'
@@ -8,11 +8,12 @@ import { createDirectusEdgeWithDefaultUrl } from '../directus/directus-edge'
 import { memoize } from '@/lib/better-unstable-cache'
 import { validateEnv } from '#/env'
 import { Session, NextAuthResult } from 'next-auth'
+import { Autherror, Authlogin } from '@/routes'
 
 export const pages = {
-    signIn: '/auth/login',
+    signIn: Authlogin(),
     signOut: '/auth/logout',
-    error: '/auth/error',
+    error: Autherror()
 } as const
 
 const userParams = (user: UserSession): UserParams => {
