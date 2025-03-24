@@ -9,6 +9,7 @@ import { Separator } from '@repo/ui/components/shadcn/separator'
 import {
     Tooltip,
     TooltipContent,
+    TooltipProvider,
     TooltipTrigger,
 } from '@repo/ui/components/shadcn/tooltip'
 import { Badge } from '@repo/ui/components/shadcn/badge'
@@ -64,7 +65,8 @@ export function DataTableFloatingBar<TData>({
     data = [],
     helpers = {},
     emptyMessage = 'Select rows to use the floating action bar',
-    whenShouldRender = () => table.getFilteredSelectedRowModel().rows.length > 0,
+    whenShouldRender = () =>
+        table.getFilteredSelectedRowModel().rows.length > 0,
 }: DataTableFloatingBarProps<TData>) {
     const { rows } = table.getFilteredSelectedRowModel()
     const hasSelectedRows = rows.length > 0
@@ -90,7 +92,7 @@ export function DataTableFloatingBar<TData>({
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [table])
-    
+
     if (!whenShouldRender()) {
         return null
     }
@@ -113,36 +115,38 @@ export function DataTableFloatingBar<TData>({
                                         orientation="vertical"
                                         className="mr-1 ml-2"
                                     />
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="size-5 hover:border"
-                                                onClick={() =>
-                                                    table.toggleAllRowsSelected(
-                                                        false
-                                                    )
-                                                }
-                                            >
-                                                <X
-                                                    className="size-3.5 shrink-0"
-                                                    aria-hidden="true"
-                                                />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent className="bg-accent text-foreground flex items-center border px-2 py-1 font-semibold dark:bg-zinc-900">
-                                            <p className="mr-2">
-                                                Clear selection
-                                            </p>
-                                            <Kbd
-                                                abbrTitle="Escape"
-                                                variant="outline"
-                                            >
-                                                Esc
-                                            </Kbd>
-                                        </TooltipContent>
-                                    </Tooltip>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="size-5 hover:border"
+                                                    onClick={() =>
+                                                        table.toggleAllRowsSelected(
+                                                            false
+                                                        )
+                                                    }
+                                                >
+                                                    <X
+                                                        className="size-3.5 shrink-0"
+                                                        aria-hidden="true"
+                                                    />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent className="bg-accent text-foreground flex items-center border px-2 py-1 font-semibold dark:bg-zinc-900">
+                                                <p className="mr-2">
+                                                    Clear selection
+                                                </p>
+                                                <Kbd
+                                                    abbrTitle="Escape"
+                                                    variant="outline"
+                                                >
+                                                    Esc
+                                                </Kbd>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
                                 </div>
                                 <Separator
                                     orientation="vertical"

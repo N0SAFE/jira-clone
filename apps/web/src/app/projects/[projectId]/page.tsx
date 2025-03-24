@@ -53,30 +53,6 @@ import { ProjectsProjectIdBoard, ProjectsProjectIdTickets } from '@/routes'
 export default function ProjectOverviewPage() {
     const { data: project } = useProject() ?? {}
 
-    // Setup real-time updates for project details
-    useDirectusRealtime({
-        collection: 'projects',
-        queryKey: ['projects', project?.id],
-        showToast: true,
-        toastMessages: {
-            update: (data) => `Project "${data.name}" has been updated`,
-        },
-    })
-
-    // Setup real-time updates for tickets
-    useDirectusRealtime({
-        collection: 'tickets',
-        queryKey: ['projects', project?.id, 'tickets'],
-        showToast: false,
-    })
-
-    // Setup real-time updates for team members
-    useDirectusRealtime({
-        collection: 'projects_directus_users',
-        queryKey: ['projects', project?.id, 'members'],
-        showToast: false,
-    })
-
     // const { data } = useRealtimeQuery(
     //     {
     //         queryKey: ['projects', project?.id, 'haaaaa'],

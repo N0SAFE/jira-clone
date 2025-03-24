@@ -53,6 +53,7 @@ import { Textarea } from '@repo/ui/components/shadcn/textarea'
 import { Input } from '@repo/ui/components/shadcn/input'
 import { useSession } from 'next-auth/react'
 import { useDirectusRealtime } from '@/hooks/useRealtimeUpdates'
+import { ApplyFields } from '@repo/directus-sdk/utils'
 
 // Dynamic icon component based on icon name from API
 const DynamicIcon = ({ iconName }: { iconName?: string }) => {
@@ -94,7 +95,7 @@ const UserAvatar = ({ user, size = "md" }: { user: any, size?: "sm" | "md" | "lg
 /**
  * Component for displaying a ticket in a parent/child relationship
  */
-const RelatedTicket = ({ ticket, relationLabel }: { ticket: any, relationLabel: string }) => {
+const RelatedTicket = ({ ticket, relationLabel }: { ticket: ApplyFields<Collections.Tickets, ['*', {type: ['*'], status: ['*'], project: ['*'], assignee: ['*']}]>, relationLabel: string }) => {
     if (!ticket) return null;
     
     const typeIcon = typeof ticket.type === 'object' ? ticket.type?.icon : null;
@@ -113,7 +114,7 @@ const RelatedTicket = ({ ticket, relationLabel }: { ticket: any, relationLabel: 
                         </div>
                         
                         <span className="font-medium text-sm">
-                            {ticket.key || `#${ticket.id}`}
+                            {ticket.project.key || `#${ticket.id}`}
                         </span>
                     </div>
                     
@@ -321,34 +322,6 @@ export default function TicketPage() {
     const refreshTicket = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'tickets', Number(ticketId)] })
     }, [queryClient, projectId, ticketId])
-
-    // Setup real-time updates for ticket changes
-    useDirectusRealtime({
-        collection: 'tickets',
-        queryKey: ['projects', projectId, 'tickets', Number(ticketId)],
-        showToast: true,
-        toastMessages: {
-            update: (data) => {
-                const changes = []
-                if (data.status) changes.push(`status changed to ${data.status.name}`)
-                if (data.priority) changes.push(`priority changed to ${data.priority.name}`)
-                if (data.assignee) changes.push(`assigned to ${data.assignee.first_name} ${data.assignee.last_name}`)
-                return `Ticket updated: ${changes.join(', ')}`
-            }
-        }
-    })
-
-    // Setup real-time updates for comments
-    useDirectusRealtime({
-        collection: 'tickets_comments',
-        queryKey: ['projects', projectId, 'tickets', Number(ticketId), 'comments'],
-        showToast: true,
-        toastMessages: {
-            create: (data) => `New comment added by ${data.user_created?.first_name}`,
-            update: (data) => `Comment updated by ${data.user_created?.first_name}`,
-            delete: () => `Comment was deleted`
-        }
-    })
 
     if (isLoading || !ticket) {
         return (

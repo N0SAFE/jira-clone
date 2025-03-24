@@ -6,8 +6,6 @@ import { MessageSquare, Send, Pencil, Trash } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@repo/ui/components/shadcn/avatar'
 import { formatDate } from '@/lib/utils'
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
-import { Collections } from '@repo/directus-sdk/client'
 
 type Comment = {
     id: number
@@ -34,18 +32,6 @@ export function Comments({ ticketId, comments, onCreateComment, onUpdateComment,
     const [editingId, setEditingId] = useState<number | null>(null)
     const [editContent, setEditContent] = useState('')
     const [newComment, setNewComment] = useState('')
-
-    // Setup real-time updates for comments
-    useRealtimeUpdates({
-        collection: Collections.TicketsComments,
-        queryKey: ['comments', ticketId],
-        showToast: true,
-        toastMessages: {
-            create: (data) => `${data.user_created.first_name} added a comment`,
-            update: (data) => `${data.user_created.first_name} updated their comment`,
-            delete: (data) => `A comment was deleted`
-        }
-    })
 
     const handleEditStart = (comment: Comment) => {
         setEditingId(comment.id)

@@ -42,23 +42,6 @@ export default function TeamPage() {
         member !== null
     ) || []
 
-    // Setup real-time updates for project members
-    useRealtimeUpdates({
-        collection: 'project_members',
-        queryKey: ['projects', project?.id, 'members'],
-        showToast: true,
-        toastMessages: {
-            create: (data) => {
-                const user = data.directus_user
-                return `${user.first_name} ${user.last_name} joined the project`
-            },
-            delete: (data) => {
-                const user = data.directus_user
-                return `${user.first_name} ${user.last_name} left the project`
-            }
-        }
-    })
-
     return (
         <div className="space-y-4 p-8 pt-6">
             <BoardHeader>

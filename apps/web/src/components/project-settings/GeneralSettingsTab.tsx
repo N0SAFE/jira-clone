@@ -31,6 +31,7 @@ export function GeneralSettingsTab({ project }: GeneralSettingsTabProps) {
   })
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
 
   const updateProjectMutation = useMutation({
     mutationFn: async (data: Record<string, any>) => {
@@ -55,6 +56,7 @@ export function GeneralSettingsTab({ project }: GeneralSettingsTabProps) {
       return await directus.Project.remove(project.id)
     },
     onSuccess: () => {
+      console.log('Project successfully deleted');
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       toast.success('Project deleted', {
         description: 'The project has been deleted successfully.'
@@ -63,6 +65,7 @@ export function GeneralSettingsTab({ project }: GeneralSettingsTabProps) {
       window.location.href = '/projects'
     },
     onError: (error: any) => {
+      console.error('Project deletion failed:', error);
       toast.error('Error', {
         description: error.message || 'Failed to delete project'
       })
@@ -242,7 +245,9 @@ export function GeneralSettingsTab({ project }: GeneralSettingsTabProps) {
               className="mt-2"
               id="confirm-delete"
               placeholder={project.key}
+              value={deleteConfirmText}
               onChange={(e) => {
+                setDeleteConfirmText(e.target.value)
                 const confirmButton = document.getElementById('confirm-delete-button') as HTMLButtonElement;
                 if (confirmButton) {
                   confirmButton.disabled = e.target.value !== project.key;
@@ -258,7 +263,7 @@ export function GeneralSettingsTab({ project }: GeneralSettingsTabProps) {
               id="confirm-delete-button"
               variant="destructive" 
               onClick={confirmDelete}
-              disabled={true}
+              disabled={deleteConfirmText !== project.key}
             >
               Delete Permanently
             </Button>

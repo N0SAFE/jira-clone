@@ -7,10 +7,7 @@ export const useFilterInstance = <T extends Filter<any>>(
         filters: T[]
         joinOperator: 'and' | 'or'
     },
-    config: {
-      statusOptions: { value: number; label: string }[]
-      priorityOptions: { value: number; label: string }[]
-    },
+    config: {},
     onChange: (filters: T[], joinOperator: 'and' | 'or') => void
 ) =>
     useFilters(
@@ -32,29 +29,6 @@ export const useFilterInstance = <T extends Filter<any>>(
                 meta: {
                     placeholder: 'Search by description...',
                 },
-            }),
-            createFilter({
-                type: 'select',
-                id: 'status',
-                label: 'Status',
-                meta: () => ({
-                    options: config.statusOptions,
-                    placeholder: 'Select status...',
-                }),
-            }),
-            createFilter({
-                type: 'select',
-                id: 'priority',
-                label: 'Priority',
-                meta: () => ({
-                    options: config.priorityOptions,
-                    placeholder: 'Select priority...',
-                }),
-            }),
-            createFilter({
-                type: 'date',
-                id: 'createdAt',
-                label: 'Created at',
             }),
         ],
         {

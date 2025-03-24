@@ -15,16 +15,6 @@ interface BoardProps {
 }
 
 export function Board({ tickets, onDragEnd, statuses }: BoardProps) {
-  // Setup real-time updates for tickets
-  useDirectusRealtime({
-    collection: 'tickets',
-    queryKey: ['tickets'],
-    showToast: true,
-    toastMessages: {
-      update: (data) => `Ticket "${data.title}" has been updated`
-    }
-  })
-
   // Configure sensors for better touch/mouse handling
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {

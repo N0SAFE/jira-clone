@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const Route = {
-  name: "SettingsProfile",
+  name: "ProjectsSettings",
   params: z.object({
   })
 };

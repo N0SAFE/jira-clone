@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@repo/ui/components/shadcn/card'
 import { Button } from '@repo/ui/components/shadcn/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@repo/ui/components/shadcn/tabs'
@@ -26,11 +26,41 @@ import Link from 'next/link'
 import { Skeleton } from '@repo/ui/components/shadcn/skeleton'
 import directus from '@/lib/directus'
 import { cn } from '@/lib/utils'
-import { NewProjectModal } from '@/components/organisms/NewProjectModal'
+import { NewProject } from '@/components/organisms/NewProject'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@repo/ui/components/shadcn/dialog'
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
+  const queryClient = useQueryClient()
+
+  // Project creation mutation
+  const projectMutation = useMutation({
+    mutationFn: async ({ name, description, key }: { name: string; description: string; key: string }) => {
+      return await directus.Project.create({
+        name,
+        description,
+        key,
+        owner: session?.user?.id
+      })
+    },
+    onSuccess: () => {
+      // Invalidate the projects query to refetch the data
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      // Close the modal
+      setIsProjectModalOpen(false)
+    },
+    onError: (error) => {
+      console.error('Error creating project:', error)
+    }
+  })
 
   // Fetch projects
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
@@ -519,11 +549,21 @@ export default function DashboardPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Project Creation Modal */}
-      <NewProjectModal 
-        open={isProjectModalOpen}
-        onOpenChange={setIsProjectModalOpen}
-      />
+      {/* Project Creation Dialog */}
+      <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Add a new project to manage your work.
+            </DialogDescription>
+          </DialogHeader>
+          <NewProject
+            onSubmit={projectMutation.mutate}
+            isPending={projectMutation.isPending}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

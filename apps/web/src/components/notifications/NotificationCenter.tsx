@@ -93,18 +93,6 @@ export function NotificationCenter() {
 
     console.log(notifications)
 
-    // Setup real-time updates for notifications
-    useDirectusRealtime({
-        collection: 'notifications',
-        queryKey: ['notifications'],
-        showToast: true,
-        toastMessages: {
-            create: (data) => `New notification: ${data.title}`,
-            update: (data) => `Notification updated: ${data.title}`,
-            delete: (data) => `Notification removed: ${data.title}`,
-        },
-    })
-
     // Filter notifications based on active tab
     const filteredNotifications = notifications?.filter((notification) => {
         if (activeTab === 'all') return true
