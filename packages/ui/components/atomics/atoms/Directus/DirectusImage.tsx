@@ -22,6 +22,7 @@ const DirectusImage: React.FC<
         directusTransform={directusTransform}
         filename={filename}
         render={({ url }) => {
+            console.log(url)
             return <Image {...props} src={url || ''} />
         }}
     />

@@ -1,23 +1,12 @@
-'use client'
-
 import {
-    ColumnDef,
-    ColumnFiltersState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    SortingState,
-    useReactTable,
-    VisibilityState,
-    Table as TableType,
-    TableMeta,
-    TableOptions,
+    Cell,
+    Column,
     Row,
-    RowModel,
+    type Table as TanstackTable,
+    flexRender,
 } from '@tanstack/react-table'
-
+import * as React from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
     Table,
     TableBody,
@@ -26,322 +15,413 @@ import {
     TableHeader,
     TableRow,
 } from '@repo/ui/components/shadcn/table'
-import React, { CSSProperties, PointerEvent, useEffect } from 'react'
-import Loader from '@repo/ui/components/atomics/atoms/Loader'
-import { DataTablePagination } from './DataTablePagination'
 import { cn } from '@repo/ui/lib/utils'
+import { Loader } from 'lucide-react'
 import {
-    arrayMove,
-    SortableContext,
-    useSortable,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import {
-    closestCenter,
     DndContext,
     DragEndEvent,
     KeyboardSensor,
     MouseSensor,
-    PointerSensor,
-    PointerSensorOptions,
-    Sensor,
     TouchSensor,
-    UniqueIdentifier,
+    closestCenter,
     useSensor,
     useSensors,
 } from '@dnd-kit/core'
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
-import For from '@repo/ui/components/atomics/atoms/For'
-import { useDataTableContext } from './DataTableContext'
+import {
+    SortableContext,
+    arrayMove,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { DataTableSortableRow } from './DataTableSortableRow'
 
-interface FilterCondition {
-    id: string
-    column: string
-    operator: string
-    value: string
-}
-
-interface AdvancedFilterOptions {
-    conditions: FilterCondition[]
-    logicOperator: 'AND' | 'OR'
-}
-
-// Custom table meta to support advanced filtering
-declare module '@tanstack/react-table' {
-    interface TableMeta<TData> {
-        advancedFilter?: AdvancedFilterOptions
-    }
-}
-
-interface DataTableProps<TData extends { uuid: UniqueIdentifier }>
-    extends React.ComponentProps<typeof Table> {
-    tableClassName?: string
-    className?: string
-    divClassname?: string
-    isLoading?: boolean
-    isLoadingMore?: boolean
-    notFound?: React.ReactNode
-    useDragabble?: boolean
-    rowIsDraggable?: boolean
-    onReorder?: (event: DragEndEvent) => void
-    useId?: string
-    row?: any
-    sensor?: {
-        disableMouse?: boolean
-        disableTouch?: boolean
-        disableKeyboard?: boolean
-    }
-}
-
-function DraggableRow<TData extends { uuid: UniqueIdentifier }>({
-    row,
-    rowIsDraggable,
+/**
+ * Generate common pinning styles for a table column.
+ *
+ * This function calculates and returns CSS properties for pinned columns in a data table.
+ * It handles both left and right pinning, applying appropriate styles for positioning,
+ * shadows, and z-index. The function also considers whether the column is the last left-pinned
+ * or first right-pinned column to apply specific shadow effects.
+ *
+ * @param options - The options for generating pinning styles.
+ * @param options.column - The column object for which to generate styles.
+ * @param options.withBorder - Whether to show a box shadow between pinned and scrollable columns.
+ * @returns A React.CSSProperties object containing the calculated styles.
+ */
+export function getCommonPinningStyles<TData>({
+    column,
+    withBorder = false,
 }: {
-    row: Row<TData>
-    rowIsDraggable?: boolean
-}) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({
-        id: row.original?.uuid ?? '',
-        disabled: !rowIsDraggable,
-    })
-
-    const style: CSSProperties = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
+    column: Column<TData>
+    /**
+     * Show box shadow between pinned and scrollable columns.
+     * @default false
+     */
+    withBorder?: boolean
+}): React.CSSProperties {
+    const isPinned = column.getIsPinned()
+    const isLastLeftPinnedColumn =
+        isPinned === 'left' && column.getIsLastColumn('left')
+    const isFirstRightPinnedColumn =
+        isPinned === 'right' && column.getIsFirstColumn('right')
+    return {
+        boxShadow: withBorder
+            ? isLastLeftPinnedColumn
+                ? '-4px 0 4px -4px hsl(var(--border)) inset'
+                : isFirstRightPinnedColumn
+                  ? '4px 0 4px -4px hsl(var(--border)) inset'
+                  : undefined
+            : undefined,
+        left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
+        right:
+            isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
+        opacity: isPinned ? 0.97 : 1,
+        position: isPinned ? 'sticky' : 'relative',
+        background: isPinned
+            ? 'hsl(var(--background))'
+            : 'hsl(var(--background))',
+        width: column.getSize(),
+        zIndex: isPinned ? 1 : 0,
     }
-
-    return (
-        <TableRow
-            ref={setNodeRef}
-            style={style}
-            {...attributes}
-            {...listeners}
-            data-state={row.getIsSelected() && 'selected'}
-        >
-            {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                    {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                    )}
-                </TableCell>
-            ))}
-        </TableRow>
-    )
 }
 
-export function DataTable<TData extends { uuid: UniqueIdentifier }>({
-    isLoading,
-    isLoadingMore,
-    notFound,
-    tableClassName,
+interface DataTableProps<TData> extends React.HTMLAttributes<HTMLDivElement> {
+    /**
+     * The table instance returned from useDataTable hook with pagination, sorting, filtering, etc.
+     * @type TanstackTable<TData>
+     */
+    table: TanstackTable<TData>
+    /**
+     * The floating bar to render at the bottom of the table on row selection.
+     * @default null
+     * @type React.ReactNode | null
+     * @example floatingBar={<TasksTableFloatingBar table={table} />}
+     */
+    floatingBar?: React.ReactNode | null
+    /**
+     * Array of row IDs that are currently in a loading state
+     * @default []
+     */
+    loadingRows?: string[]
+    /**
+     * Function to render expanded row content
+     * If provided, rows will be expandable
+     */
+    renderExpandedRow?: (rowData: TData) => React.ReactNode
+    /**
+     * Expanded row IDs
+     * This is an external state so parent component can control expansion
+     */
+    expandedRowIds?: string[]
+    /**
+     * Handler for row expansion changes
+     */
+    onExpandedRowIdsChange?: (rowIds: string[]) => void
+    /**
+     * Enable row reordering via drag and drop
+     * @default false
+     */
+    enableRowReordering?: boolean
+    /**
+     * Callback when rows are reordered
+     */
+    onRowReorder?: (rowIds: string[]) => void
+    /**
+     * function to render custom row
+     */
+    renderRow?: (
+        rowData: Row<TData>,
+        content: React.ReactNode
+    ) => React.ReactNode
+    /**
+     * function to render custom cell
+     */
+    renderCell?: (
+        cell: Cell<TData, unknown>,
+        content: React.ReactNode
+    ) => React.ReactNode
+}
+
+export function DataTable<TData>({
+    table,
+    floatingBar = null,
+    loadingRows = [],
+    renderExpandedRow,
+    expandedRowIds = [],
+    onExpandedRowIdsChange,
+    enableRowReordering = false,
+    onRowReorder,
+    children,
     className,
-    divClassname,
-    useDragabble,
-    rowIsDraggable,
-    onReorder,
-    useId,
-    row,
-    sensor: {
-        disableMouse = false,
-        disableTouch = false,
-        disableKeyboard = false,
-    } = {},
+    renderRow,
+    renderCell,
     ...props
 }: DataTableProps<TData>) {
-    const { table } = useDataTableContext('DataTable has to be render inside a DataTableProvider')
+    // Internal state for expanded rows if not controlled externally
+    const [internalExpandedRowIds, setInternalExpandedRowIds] = useState<
+        string[]
+    >([])
 
-    const sensors = useSensors(
-        useSensor(disableMouse ? { activators: [] } : MouseSensor, {
-            activationConstraint: { distance: 5 },
-        }),
-        useSensor(disableTouch ? { activators: [] } : TouchSensor, {
-            activationConstraint: { distance: 5 },
-        }),
-        useSensor(disableKeyboard ? { activators: [] } : KeyboardSensor, {})
+    // Use either controlled or uncontrolled expansion state
+    const effectiveExpandedRowIds = onExpandedRowIdsChange
+        ? expandedRowIds
+        : internalExpandedRowIds
+
+    // Toggle row expansion
+    const toggleRowExpanded = useCallback(
+        (rowId: string) => {
+            const newExpandedRowIds = effectiveExpandedRowIds.includes(rowId)
+                ? effectiveExpandedRowIds.filter((id) => id !== rowId)
+                : [...effectiveExpandedRowIds, rowId]
+
+            if (onExpandedRowIdsChange) {
+                onExpandedRowIdsChange(newExpandedRowIds)
+            } else {
+                setInternalExpandedRowIds(newExpandedRowIds)
+            }
+        },
+        [effectiveExpandedRowIds, onExpandedRowIdsChange]
     )
 
-    // Custom filtering logic for advanced filtering
-    useEffect(() => {
-        if (table?.options.meta?.advancedFilter) {
-            table.setColumnFilters([]) // Clear column filters when using advanced filter
-            
-            const { conditions, logicOperator } = table.options.meta.advancedFilter
-            
-            // Apply the custom filter function
-            const filterFn = (row: Row<TData>) => {
-                if (conditions.length === 0) return true
-                
-                const results = conditions.map(condition => {
-                    const { column, operator, value } = condition
-                    if (!column || !value) return true
-                    
-                    const cellValue = String(row.getValue(column) || '').toLowerCase()
-                    const searchValue = value.toLowerCase()
-                    
-                    switch (operator) {
-                        case 'contains':
-                            return cellValue.includes(searchValue)
-                        case 'equals':
-                            return cellValue === searchValue
-                        case 'startsWith':
-                            return cellValue.startsWith(searchValue)
-                        case 'endsWith':
-                            return cellValue.endsWith(searchValue)
-                        default:
-                            return true
-                    }
-                })
-                
-                return logicOperator === 'AND' 
-                    ? results.every(result => result)
-                    : results.some(result => result)
+    // Setup DnD sensors for keyboard, mouse, and touch interactions
+    const sensors = useSensors(
+        useSensor(MouseSensor, {
+            activationConstraint: {
+                distance: 8, // 8px of movement required before activating
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 200, // 200ms delay for touch
+                tolerance: 8, // 8px tolerance
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    )
+
+    // Get row IDs for sortable context
+    const rowIds = useMemo(
+        () => table.getRowModel().rows.map((row) => row.id),
+        [table.getRowModel().rows]
+    )
+
+    // Handle drag end event
+    const handleDragEnd = useCallback(
+        (event: DragEndEvent) => {
+            const { active, over } = event
+
+            if (over && active.id !== over.id) {
+                const oldIndex = rowIds.indexOf(active.id as string)
+                const newIndex = rowIds.indexOf(over.id as string)
+
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    const newOrder = arrayMove(rowIds, oldIndex, newIndex)
+                    onRowReorder?.(newOrder)
+                }
             }
-            
-            // Filter the rows manually
-            const filteredRows = table.getRowModel().rows.filter(filterFn)
-            
-            // Update the table state to reflect the filtered rows
-            table.options.data = filteredRows.map(row => row.original)
-            
-        } else {
-            // Reset to original data if no advanced filter
-            // This is handled by the table automatically
-        }
-    }, [table?.options.meta?.advancedFilter])
-    
-    const dataIds = React.useMemo(
-        () => table?.options?.data?.map((data) => data.uuid) ?? [],
-        [table?.options?.data]
+        },
+        [rowIds, onRowReorder]
+    )
+
+    const _renderRow = function (
+        row: Row<TData>,
+        content: (children: React.ReactNode) => React.ReactNode,
+        children: React.ReactNode
+    ) {
+        return renderRow ? renderRow(row, children) : content(children)
+    }
+
+    const _renderCell = function (
+        cell: Cell<TData, unknown>,
+        content: (children: React.ReactNode) => React.ReactNode,
+        children: React.ReactNode
+    ) {
+        return renderCell
+            ? renderCell(cell, children)
+            : content(children)
+    }
+
+    const MemorizedRow = useCallback(
+        ({ row, children }: { row: Row<TData>; children: React.ReactNode }) => {
+            return renderRow ? (
+                renderRow(row, children)
+            ) : enableRowReordering ? (
+                <DataTableSortableRow
+                    id={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    role="row"
+                >
+                    {children}
+                </DataTableSortableRow>
+            ) : (
+                <TableRow data-state={row.getIsSelected() && 'selected'} role="row">
+                    {children}
+                </TableRow>
+            )
+        },
+        [renderRow, enableRowReordering]
+    )
+
+    // Wrap with DndContext if row reordering is enabled
+    const tableContent = (
+        <div className="overflow-hidden rounded-md border">
+            <Table
+                role="grid"
+                aria-label="Data table"
+                aria-rowcount={table.getRowModel().rows.length}
+                aria-colcount={table.getAllColumns().length}
+            >
+                <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id} role="row">
+                            {headerGroup.headers.map((header) => (
+                                <TableHead
+                                    key={header.id}
+                                    colSpan={header.colSpan}
+                                    role="columnheader"
+                                    aria-sort={
+                                        header.column.getIsSorted()
+                                            ? header.column.getIsSorted() ===
+                                              'desc'
+                                                ? 'descending'
+                                                : 'ascending'
+                                            : 'none'
+                                    }
+                                    style={{
+                                        ...getCommonPinningStyles({
+                                            column: header.column,
+                                        }),
+                                    }}
+                                >
+                                    {header.isPlaceholder
+                                        ? null
+                                        : flexRender(
+                                              header.column.columnDef.header,
+                                              header.getContext()
+                                          )}
+                                </TableHead>
+                            ))}
+                        </TableRow>
+                    ))}
+                </TableHeader>
+                <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row, rowIndex) => {
+                            const isRowLoading = loadingRows.includes(row.id)
+                            const isExpanded = effectiveExpandedRowIds.includes(
+                                row.id
+                            )
+
+                            return (
+                                <React.Fragment key={row.id}>
+                                    <MemorizedRow row={row}>
+                                        {row
+                                            .getVisibleCells()
+                                            .map((cell, cellIndex) =>
+                                                _renderCell(
+                                                    cell,
+                                                    (children) => (
+                                                        <TableCell
+                                                            key={cell.id}
+                                                            role="gridcell"
+                                                            aria-colindex={
+                                                                cellIndex + 1
+                                                            }
+                                                            style={{
+                                                                ...getCommonPinningStyles(
+                                                                    {
+                                                                        column: cell.column,
+                                                                    }
+                                                                ),
+                                                            }}
+                                                        >
+                                                            {children}
+                                                        </TableCell>
+                                                    ),
+                                                    flexRender(
+                                                        cell.column.columnDef
+                                                            .cell,
+                                                        cell.getContext()
+                                                    )
+                                                )
+                                            )}
+
+                                        {isRowLoading && (
+                                            <div
+                                                className="bg-background/50 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
+                                                aria-live="polite"
+                                            >
+                                                <Loader
+                                                    className="text-primary size-4 animate-spin"
+                                                    aria-label="Chargement"
+                                                />
+                                            </div>
+                                        )}
+                                    </MemorizedRow>
+
+                                    {/* Expanded row content */}
+                                    {isExpanded && renderExpandedRow && (
+                                        <TableRow
+                                            className="border-b-0"
+                                            role="row"
+                                            aria-rowindex={rowIndex + 2}
+                                        >
+                                            <TableCell
+                                                colSpan={
+                                                    row.getVisibleCells().length
+                                                }
+                                                className="p-0"
+                                                role="gridcell"
+                                            >
+                                                {renderExpandedRow(
+                                                    row.original
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </React.Fragment>
+                            )
+                        })
+                    ) : (
+                        <TableRow role="row">
+                            <TableCell
+                                colSpan={table.getAllColumns().length}
+                                className="h-24 text-center"
+                                role="gridcell"
+                            >
+                                Aucun résultat.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+        </div>
     )
 
     return (
-        <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={onReorder}
-            sensors={sensors}
+        <div
+            className={cn('w-full space-y-2.5 overflow-auto', className)}
+            {...props}
         >
-            <div
-                className={cn(
-                    'flex h-full flex-col justify-between gap-4 overflow-hidden',
-                    className
-                )}
-            >
-                {isLoading && (
-                    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black opacity-70">
-                        <Loader size="8" />
-                    </div>
-                )}
-
-                <div
-                    className={cn(
-                        'max-h-full overflow-auto scrollbar-thin scrollbar-thumb-secondary scrollbar-track-transparent',
-                        divClassname
-                    )}
+            {children}
+            {enableRowReordering ? (
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
                 >
-                    <Table
-                        className={cn(
-                            'relative h-10 w-full table-auto overflow-clip',
-                            tableClassName
-                        )}
+                    <SortableContext
+                        items={rowIds}
+                        strategy={verticalListSortingStrategy}
                     >
-                        <TableHeader className="border-border bg-secondary sticky top-0 z-10 h-10 w-full rounded-t-md border-b-2">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                      header.column.columnDef
-                                                          .header,
-                                                      header.getContext()
-                                                  )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-
-                        <TableBody>
-                            {isLoadingMore && (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={
-                                            table.options.columns.length
-                                        }
-                                        className="h-24 text-center"
-                                    >
-                                        <span className="flex items-center justify-center">
-                                            <Loader size="5" />
-                                        </span>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-
-                            {isLoading ? (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={
-                                            table.options.columns.length
-                                        }
-                                        className="h-24 text-center"
-                                    ></TableCell>
-                                </TableRow>
-                            ) : table.getRowModel().rows?.length ? (
-                                <SortableContext
-                                    items={useDragabble ? dataIds : []}
-                                    strategy={verticalListSortingStrategy}
-                                >
-                                    {row ? (
-                                        <For each={table.getRowModel().rows}>
-                                            {(rowData) => row(rowData)}
-                                        </For>
-                                    ) : (
-                                        <For each={table.getRowModel().rows}>
-                                            {(row) => (
-                                                <DraggableRow
-                                                    row={row}
-                                                    rowIsDraggable={
-                                                        useDragabble
-                                                            ? rowIsDraggable
-                                                            : false
-                                                    }
-                                                />
-                                            )}
-                                        </For>
-                                    )}
-                                </SortableContext>
-                            ) : (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={
-                                            table.options.columns.length
-                                        }
-                                        className="h-24 text-center"
-                                    >
-                                        {notFound
-                                            ? typeof notFound == 'string'
-                                                ? <span className="flex items-center justify-center">{notFound}</span>
-                                                : notFound
-                                            : null}
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
-        </DndContext>
+                        {tableContent}
+                    </SortableContext>
+                </DndContext>
+            ) : (
+                tableContent
+            )}
+        </div>
     )
 }

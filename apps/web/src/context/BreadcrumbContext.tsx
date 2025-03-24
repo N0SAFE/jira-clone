@@ -6,8 +6,8 @@ import React, {
     useState,
     useCallback,
     ReactNode,
-    useEffect,
     useRef,
+    useEffect,
 } from 'react'
 
 export interface BreadcrumbItem {
@@ -18,7 +18,7 @@ export interface BreadcrumbItem {
 
 interface BreadcrumbContextType {
     items: BreadcrumbItem[]
-    useAddBreadcrumb: (item: Omit<BreadcrumbItem, 'id'>) => void
+    addBreadcrumb: (item: Omit<BreadcrumbItem, 'id'>) => void
 }
 
 const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(
@@ -27,23 +27,32 @@ const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(
 
 export function BreadcrumbProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<BreadcrumbItem[]>([])
+    const idCounterRef = useRef(0)
 
-    const useAddBreadcrumb = useCallback((item: Omit<BreadcrumbItem, 'id'>) => {
-        const id = useRef(Math.random())
-        setItems((prev) =>
-            prev.some((i) => i.id === id.current)
-                ? prev.map((i) =>
-                      i.id === id.current ? { ...item, id: id.current } : i
-                  )
-                : [...prev, { ...item, id: id.current }]
-        )
+    // Create proper addBreadcrumb function that doesn't use hooks inside
+    const addBreadcrumb = useCallback((item: Omit<BreadcrumbItem, 'id'>) => {
+        const id = ++idCounterRef.current
+        setItems(prev => {
+            // Check if we already have an item with the same label and href
+            const existingItemIndex = prev.findIndex(
+                i => i.label === item.label && i.href === item.href
+            )
+            
+            if (existingItemIndex >= 0) {
+                // If item exists, no need to update state
+                return prev
+            }
+            
+            // Add new item
+            return [...prev, { ...item, id }]
+        })
     }, [])
 
     return (
         <BreadcrumbContext.Provider
             value={{
                 items,
-                useAddBreadcrumb,
+                addBreadcrumb,
             }}
         >
             {children}

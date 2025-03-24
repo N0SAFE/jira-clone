@@ -2,7 +2,8 @@ import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSenso
 import { Collections } from "@repo/directus-sdk/client"
 import { ApplyFields } from "@repo/directus-sdk/indirectus/utils"
 import { BoardColumn } from "@/components/molecules/BoardColumn"
-import {  snapCenterToCursor } from "@dnd-kit/modifiers"
+import { snapCenterToCursor } from "@dnd-kit/modifiers"
+import { useDirectusRealtime } from '@/hooks/useRealtimeUpdates'
 
 interface BoardProps {
   tickets: ApplyFields<Collections.Tickets, ['title', 'id', {
@@ -48,4 +49,4 @@ export function Board({ tickets, onDragEnd, statuses }: BoardProps) {
       </div>
     </DndContext>
   )
-} 
+}

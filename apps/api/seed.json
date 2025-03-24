@@ -1,5 +1,5 @@
 {
-  "lastAdminRoleId": "d3c5e575-c795-4406-89cd-87b384af0747",
+  "lastAdminRoleId": "1dc2d880-d88d-4ea2-ac72-182934a232af",
   "data": [
     {
       "id": "adding directus_roles",
@@ -7,7 +7,7 @@
         {
           "description": "$t:admin_description",
           "icon": "verified",
-          "id": "d3c5e575-c795-4406-89cd-87b384af0747",
+          "id": "1dc2d880-d88d-4ea2-ac72-182934a232af",
           "name": "Administrator",
           "parent": null,
           "children": []
@@ -23,7 +23,7 @@
           "description": "$t:admin_description",
           "enforce_tfa": false,
           "icon": "verified",
-          "id": "251db7b3-8015-4b77-b80b-1caf70137968",
+          "id": "69759148-bcbf-4d08-9187-173cf3c8bffe",
           "ip_access": null,
           "name": "Administrator"
         },
@@ -47,14 +47,14 @@
       "id": "adding directus_access",
       "items": [
         {
-          "id": "954cd046-9b22-419a-b575-563296d58586",
-          "policy": "251db7b3-8015-4b77-b80b-1caf70137968",
-          "role": "d3c5e575-c795-4406-89cd-87b384af0747",
+          "id": "009b4f22-3271-4453-b874-0eca0a91c767",
+          "policy": "69759148-bcbf-4d08-9187-173cf3c8bffe",
+          "role": "1dc2d880-d88d-4ea2-ac72-182934a232af",
           "sort": null,
           "user": null
         },
         {
-          "id": "fa516eeb-0215-46fa-b1f0-fa921940dc21",
+          "id": "34a33676-8135-493f-9456-83c6153ba31c",
           "policy": "abf8a154-5b1c-4a46-ac9c-7300570f4f17",
           "role": null,
           "sort": 1,

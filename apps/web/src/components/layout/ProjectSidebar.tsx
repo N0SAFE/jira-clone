@@ -25,35 +25,40 @@ import {
 } from '@repo/ui/components/shadcn/breadcrumb'
 import { AppSidebar } from '../organisms/Sidebar/AppSidebar'
 import { useBreadcrumb } from '@/context/BreadcrumbContext'
+import { useEffect } from 'react'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     projectId: number
 }
 
 export function ProjectSidebar({ children, projectId }: SidebarProps) {
-    const { items, useAddBreadcrumb } = useBreadcrumb()
-    useAddBreadcrumb({
-        label: `Project ${projectId}`,
-        href: `/projects/${projectId}`,
-    })
-    console.log(items)
+    const { items, addBreadcrumb } = useBreadcrumb()
+    
+    // Use effect to add breadcrumb only once when component mounts
+    useEffect(() => {
+        addBreadcrumb({
+            label: `Project ${projectId}`,
+            href: `/projects/${projectId}`,
+        })
+    }, [addBreadcrumb, projectId])
+    
     const pathname = usePathname()
-
+    
     // Extract breadcrumb info from pathname
     const getBreadcrumbInfo = () => {
         // Default values
         let projectName = 'Project'
         let currentSection = ''
-
+        
         // Check if we're in a project route
         if (pathname.startsWith('/projects/')) {
             // Split the path to get project ID and section
             const pathParts = pathname.split('/').filter(Boolean)
-
+            
             // If we have a project ID (at least /projects/[id])
             if (pathParts.length >= 2) {
                 projectName = `Project ${pathParts[1]}`
-
+                
                 // If we have a section (like /projects/[id]/board)
                 if (pathParts.length >= 3) {
                     currentSection =
@@ -64,12 +69,12 @@ export function ProjectSidebar({ children, projectId }: SidebarProps) {
                 }
             }
         }
-
+        
         return { projectName, currentSection }
     }
-
+    
     const { projectName, currentSection } = getBreadcrumbInfo()
-
+    
     return (
         <div className="flex h-full w-full">
             <SidebarProvider>

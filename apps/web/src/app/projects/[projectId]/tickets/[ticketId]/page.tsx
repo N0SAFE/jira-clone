@@ -52,6 +52,8 @@ import { useEditableField } from '@/hooks/useEditableField'
 import { Textarea } from '@repo/ui/components/shadcn/textarea'
 import { Input } from '@repo/ui/components/shadcn/input'
 import { useSession } from 'next-auth/react'
+import { useDirectusRealtime } from '@/hooks/useRealtimeUpdates'
+import { ApplyFields } from '@repo/directus-sdk/utils'
 
 // Dynamic icon component based on icon name from API
 const DynamicIcon = ({ iconName }: { iconName?: string }) => {
@@ -93,7 +95,7 @@ const UserAvatar = ({ user, size = "md" }: { user: any, size?: "sm" | "md" | "lg
 /**
  * Component for displaying a ticket in a parent/child relationship
  */
-const RelatedTicket = ({ ticket, relationLabel }: { ticket: any, relationLabel: string }) => {
+const RelatedTicket = ({ ticket, relationLabel }: { ticket: ApplyFields<Collections.Tickets, ['*', {type: ['*'], status: ['*'], project: ['*'], assignee: ['*']}]>, relationLabel: string }) => {
     if (!ticket) return null;
     
     const typeIcon = typeof ticket.type === 'object' ? ticket.type?.icon : null;
@@ -112,7 +114,7 @@ const RelatedTicket = ({ ticket, relationLabel }: { ticket: any, relationLabel: 
                         </div>
                         
                         <span className="font-medium text-sm">
-                            {ticket.key || `#${ticket.id}`}
+                            {ticket.project.key || `#${ticket.id}`}
                         </span>
                     </div>
                     
